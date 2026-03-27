@@ -1,0 +1,255 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --radius: 0.5rem;
+    /* Dark neon Minecraft theme */
+    --background: 0.09 0.02 255;
+    --foreground: 0.94 0.02 240;
+    --card: 0.12 0.025 255;
+    --card-foreground: 0.94 0.02 240;
+    --popover: 0.14 0.03 255;
+    --popover-foreground: 0.94 0.02 240;
+    --primary: 0.85 0.15 200;
+    --primary-foreground: 0.09 0.02 255;
+    --secondary: 0.55 0.22 285;
+    --secondary-foreground: 0.94 0.02 240;
+    --muted: 0.16 0.02 255;
+    --muted-foreground: 0.72 0.03 240;
+    --accent: 0.65 0.25 320;
+    --accent-foreground: 0.94 0.02 240;
+    --destructive: 0.577 0.245 27.325;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.22 0.04 255;
+    --input: 0.18 0.03 255;
+    --ring: 0.85 0.15 200;
+    --chart-1: 0.85 0.15 200;
+    --chart-2: 0.55 0.22 285;
+    --chart-3: 0.65 0.25 320;
+    --chart-4: 0.82 0.15 80;
+    --chart-5: 0.72 0.2 140;
+    --sidebar: 0.12 0.025 255;
+    --sidebar-foreground: 0.94 0.02 240;
+    --sidebar-primary: 0.85 0.15 200;
+    --sidebar-primary-foreground: 0.09 0.02 255;
+    --sidebar-accent: 0.55 0.22 285;
+    --sidebar-accent-foreground: 0.94 0.02 240;
+    --sidebar-border: 0.22 0.04 255;
+    --sidebar-ring: 0.85 0.15 200;
+  }
+
+  .dark {
+    --background: 0.09 0.02 255;
+    --foreground: 0.94 0.02 240;
+    --card: 0.12 0.025 255;
+    --card-foreground: 0.94 0.02 240;
+    --popover: 0.14 0.03 255;
+    --popover-foreground: 0.94 0.02 240;
+    --primary: 0.85 0.15 200;
+    --primary-foreground: 0.09 0.02 255;
+    --secondary: 0.55 0.22 285;
+    --secondary-foreground: 0.94 0.02 240;
+    --muted: 0.16 0.02 255;
+    --muted-foreground: 0.72 0.03 240;
+    --accent: 0.65 0.25 320;
+    --accent-foreground: 0.94 0.02 240;
+    --destructive: 0.704 0.191 22.216;
+    --destructive-foreground: 0.985 0 0;
+    --border: 0.22 0.04 255;
+    --input: 0.18 0.03 255;
+    --ring: 0.85 0.15 200;
+    --chart-1: 0.85 0.15 200;
+    --chart-2: 0.55 0.22 285;
+    --chart-3: 0.65 0.25 320;
+    --chart-4: 0.82 0.15 80;
+    --chart-5: 0.72 0.2 140;
+    --sidebar: 0.12 0.025 255;
+    --sidebar-foreground: 0.94 0.02 240;
+    --sidebar-primary: 0.85 0.15 200;
+    --sidebar-primary-foreground: 0.09 0.02 255;
+    --sidebar-accent: 0.55 0.22 285;
+    --sidebar-accent-foreground: 0.94 0.02 240;
+    --sidebar-border: 0.22 0.04 255;
+    --sidebar-ring: 0.85 0.15 200;
+  }
+
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: "VT323", monospace;
+    font-size: 18px;
+  }
+  html {
+    color-scheme: dark;
+  }
+}
+
+/* Neon glow text effects */
+.neon-cyan {
+  color: oklch(0.85 0.15 200);
+  text-shadow: 0 0 7px oklch(0.85 0.15 200 / 0.9), 0 0 20px
+    oklch(0.85 0.15 200 / 0.6), 0 0 40px oklch(0.85 0.15 200 / 0.4);
+}
+
+.neon-purple {
+  color: oklch(0.7 0.22 285);
+  text-shadow: 0 0 7px oklch(0.7 0.22 285 / 0.9), 0 0 20px
+    oklch(0.7 0.22 285 / 0.6), 0 0 40px oklch(0.7 0.22 285 / 0.4);
+}
+
+.neon-gold {
+  color: oklch(0.82 0.15 80);
+  text-shadow: 0 0 7px oklch(0.82 0.15 80 / 0.9), 0 0 20px
+    oklch(0.82 0.15 80 / 0.6);
+}
+
+.neon-magenta {
+  color: oklch(0.72 0.25 320);
+  text-shadow: 0 0 7px oklch(0.72 0.25 320 / 0.9), 0 0 20px
+    oklch(0.72 0.25 320 / 0.6), 0 0 40px oklch(0.72 0.25 320 / 0.4);
+}
+
+/* Animated gradient border for featured cards */
+@keyframes borderRotate {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.featured-border {
+  position: relative;
+  isolation: isolate;
+}
+
+.featured-border::before {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    oklch(0.85 0.15 200),
+    oklch(0.55 0.22 285),
+    oklch(0.72 0.25 320),
+    oklch(0.85 0.15 200)
+  );
+  background-size: 300% 300%;
+  animation: borderRotate 3s ease infinite;
+  z-index: -1;
+}
+
+.featured-border::after {
+  content: "";
+  position: absolute;
+  inset: -4px;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    oklch(0.85 0.15 200 / 0.3),
+    oklch(0.55 0.22 285 / 0.3)
+  );
+  filter: blur(8px);
+  z-index: -2;
+  animation: borderRotate 3s ease infinite;
+  background-size: 300% 300%;
+}
+
+/* Card hover lift */
+.server-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.server-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 32px oklch(0.85 0.15 200 / 0.2);
+}
+
+/* Neon grid background */
+.hero-grid {
+  background-image: linear-gradient(
+      oklch(0.85 0.15 200 / 0.07) 1px,
+      transparent 1px
+    ), linear-gradient(90deg, oklch(0.85 0.15 200 / 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Pixel font */
+.font-pixel {
+  font-family: "Press Start 2P", cursive;
+}
+
+.font-vt323 {
+  font-family: "VT323", monospace;
+}
+
+/* Copy button feedback */
+@keyframes copyPulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.copy-pulse {
+  animation: copyPulse 0.3s ease;
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    oklch(0.16 0.02 255) 25%,
+    oklch(0.22 0.03 255) 50%,
+    oklch(0.16 0.02 255) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: oklch(0.09 0.02 255);
+}
+::-webkit-scrollbar-thumb {
+  background: oklch(0.3 0.08 255);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.85 0.15 200 / 0.6);
+}
+
+/* Admin panel details styling */
+details.admin-panel summary {
+  cursor: pointer;
+  list-style: none;
+}
+details.admin-panel summary::-webkit-details-marker {
+  display: none;
+}
