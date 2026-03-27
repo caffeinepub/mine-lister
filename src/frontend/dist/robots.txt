@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://minelister.in/sitemap.xml

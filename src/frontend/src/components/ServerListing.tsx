@@ -16,9 +16,21 @@ interface ServerListingProps {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  onServerClick?: (server: ServerData) => void;
 }
 
 const SKELETON_KEYS = ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5", "sk-6"];
+
+const CATEGORY_PILLS = [
+  { label: "Survival", id: "survival" },
+  { label: "SMP", id: "smp" },
+  { label: "Skyblock", id: "skyblock" },
+  { label: "Factions", id: "factions" },
+  { label: "PvP", id: "pvp" },
+  { label: "Minigames", id: "minigames" },
+  { label: "Prison", id: "prison" },
+  { label: "Lifesteal", id: "lifesteal" },
+];
 
 function SkeletonCard() {
   return (
@@ -39,6 +51,7 @@ export default function ServerListing({
   loading,
   error,
   onRetry,
+  onServerClick,
 }: ServerListingProps) {
   const [search, setSearch] = useState("");
   const [filterVersion, setFilterVersion] = useState("all");
@@ -61,7 +74,10 @@ export default function ServerListing({
       if (search && !s.name.toLowerCase().includes(search.toLowerCase()))
         return false;
       if (filterVersion !== "all" && s.version !== filterVersion) return false;
-      if (filterGamemode !== "all" && s.gamemode !== filterGamemode)
+      if (
+        filterGamemode !== "all" &&
+        !s.gamemode.toLowerCase().includes(filterGamemode.toLowerCase())
+      )
         return false;
       if (filterType !== "all" && s.serverType !== filterType) return false;
       if (featuredOnly && !s.featured) return false;
@@ -76,16 +92,57 @@ export default function ServerListing({
     featuredOnly,
   ]);
 
+  const handleCategoryClick = (label: string) => {
+    setFilterGamemode((prev) =>
+      prev.toLowerCase() === label.toLowerCase() ? "all" : label,
+    );
+  };
+
   return (
     <section id="server-listing" className="py-16">
       <div className="container mx-auto px-4">
         {/* Section heading */}
         <h2
-          className="font-pixel neon-gold text-center mb-10"
+          className="font-pixel neon-gold text-center mb-6"
           style={{ fontSize: "clamp(10px, 2vw, 16px)" }}
         >
-          ★ SERVER LIST ★
+          Browse All Minecraft Servers
         </h2>
+
+        {/* Category quick-link pills */}
+        <div className="flex flex-wrap justify-center gap-2 mb-8">
+          {CATEGORY_PILLS.map((pill) => {
+            const isActive =
+              filterGamemode.toLowerCase() === pill.label.toLowerCase();
+            return (
+              <span key={pill.id} id={pill.id}>
+                <button
+                  type="button"
+                  onClick={() => handleCategoryClick(pill.label)}
+                  className="font-vt323 px-4 py-1.5 rounded-full border transition-all duration-200"
+                  style={{
+                    fontSize: "17px",
+                    color: isActive
+                      ? "oklch(0.18 0.025 255)"
+                      : "oklch(0.75 0.12 255)",
+                    background: isActive
+                      ? "oklch(0.72 0.22 285)"
+                      : "oklch(0.15 0.04 255 / 0.5)",
+                    borderColor: isActive
+                      ? "oklch(0.72 0.22 285)"
+                      : "oklch(0.35 0.08 255 / 0.5)",
+                    boxShadow: isActive
+                      ? "0 0 12px oklch(0.72 0.22 285 / 0.5)"
+                      : "none",
+                  }}
+                  data-ocid="server.tab"
+                >
+                  {pill.label}
+                </button>
+              </span>
+            );
+          })}
+        </div>
 
         {/* Filter controls */}
         <div
@@ -295,6 +352,7 @@ export default function ServerListing({
                     key={`${server.ip}-${i}`}
                     server={server}
                     index={i}
+                    onServerClick={onServerClick}
                   />
                 ))}
               </div>

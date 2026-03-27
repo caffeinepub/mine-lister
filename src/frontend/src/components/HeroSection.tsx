@@ -36,12 +36,12 @@ export default function HeroSection({ serverCount }: HeroSectionProps) {
       />
 
       <div className="container relative z-10 mx-auto px-4 text-center">
-        {/* Main heading */}
+        {/* SEO H1 */}
         <h1
           className="font-pixel neon-cyan mb-6 leading-relaxed"
           style={{ fontSize: "clamp(14px, 3vw, 26px)" }}
         >
-          WELCOME TO
+          Best Minecraft Server List
           <br />
           <span
             className="neon-magenta"

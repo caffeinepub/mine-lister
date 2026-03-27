@@ -1,10 +1,11 @@
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, ExternalLink } from "lucide-react";
 import { useState } from "react";
 import type { ServerData } from "../utils/sheetsParser";
 
 interface ServerCardProps {
   server: ServerData;
   index: number;
+  onServerClick?: (server: ServerData) => void;
 }
 
 const TAG_COLORS: Record<string, string> = {
@@ -28,10 +29,13 @@ const PLACEHOLDER_GRADIENTS = [
   "linear-gradient(135deg, oklch(0.18 0.07 320), oklch(0.18 0.07 255))",
 ];
 
-export default function ServerCard({ server, index }: ServerCardProps) {
+export default function ServerCard({
+  server,
+  index,
+  onServerClick,
+}: ServerCardProps) {
   const [copied, setCopied] = useState(false);
 
-  // Treat ip as available only when the string is non-empty after trimming
   const ipValue = server.ip?.trim() ?? "";
   const hasIP = ipValue.length > 0;
 
@@ -67,7 +71,7 @@ export default function ServerCard({ server, index }: ServerCardProps) {
         {server.imageURL ? (
           <img
             src={server.imageURL}
-            alt={`${server.name} banner`}
+            alt={`${server.name} Minecraft server banner`}
             className="h-full w-full object-cover"
             loading="lazy"
           />
@@ -75,6 +79,7 @@ export default function ServerCard({ server, index }: ServerCardProps) {
           <div
             className="h-full w-full flex items-center justify-center"
             style={{ background: placeholderBg }}
+            aria-label={`${server.name} server placeholder`}
           >
             <span
               className="font-pixel text-foreground/30"
@@ -131,7 +136,7 @@ export default function ServerCard({ server, index }: ServerCardProps) {
           </span>
         </div>
 
-        {/* Server name */}
+        {/* Server name - H3 for proper heading hierarchy */}
         <h3
           className={`font-pixel mb-2 leading-relaxed ${
             server.featured ? "neon-cyan" : "text-foreground"
@@ -251,13 +256,29 @@ export default function ServerCard({ server, index }: ServerCardProps) {
         </div>
 
         {/* Footer row: version + gamemode */}
-        <div className="flex items-center mt-auto">
+        <div className="flex items-center justify-between mt-auto">
           <span
             className="font-vt323 text-muted-foreground"
             style={{ fontSize: "15px" }}
           >
             {server.version} · {server.gamemode}
           </span>
+          {onServerClick && (
+            <button
+              type="button"
+              onClick={() => onServerClick(server)}
+              className="font-vt323 flex items-center gap-1 px-3 py-1 rounded border transition-all duration-200 hover:bg-primary/20"
+              style={{
+                fontSize: "14px",
+                color: "oklch(0.75 0.18 255)",
+                borderColor: "oklch(0.45 0.12 255 / 0.5)",
+              }}
+              data-ocid={`server.secondary_button.${index + 1}`}
+            >
+              <ExternalLink className="h-3 w-3" />
+              View Details
+            </button>
+          )}
         </div>
       </div>
     </article>

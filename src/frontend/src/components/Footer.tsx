@@ -3,16 +3,13 @@ import { Pickaxe } from "lucide-react";
 const year = new Date().getFullYear();
 
 export default function Footer() {
-  const hostname =
-    typeof window !== "undefined" ? window.location.hostname : "";
-
   return (
     <footer
       className="border-t border-border mt-8"
       style={{ background: "oklch(0.12 0.025 255)" }}
     >
       <div className="container mx-auto px-4 py-12">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           {/* Left: Logo + disclaimer */}
           <div>
             <div className="flex items-center gap-2 mb-4">
@@ -46,8 +43,41 @@ export default function Footer() {
             </p>
           </div>
 
+          {/* Browse by Gamemode */}
+          <div>
+            <h3
+              className="font-pixel text-foreground mb-4"
+              style={{ fontSize: "9px" }}
+            >
+              BROWSE BY GAMEMODE
+            </h3>
+            <nav
+              className="flex flex-col gap-2"
+              aria-label="Gamemode navigation"
+            >
+              {[
+                { label: "Survival Servers", href: "#survival" },
+                { label: "Skyblock Servers", href: "#skyblock" },
+                { label: "PvP Servers", href: "#pvp" },
+                { label: "Factions Servers", href: "#factions" },
+                { label: "SMP Servers", href: "#smp" },
+                { label: "Minigames Servers", href: "#minigames" },
+              ].map((link) => (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="font-vt323 text-muted-foreground hover:text-primary transition-colors"
+                  style={{ fontSize: "16px" }}
+                  data-ocid="footer.link"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </nav>
+          </div>
+
           {/* Center: Links */}
-          <div className="md:text-center">
+          <div>
             <h3
               className="font-pixel text-foreground mb-4"
               style={{ fontSize: "9px" }}
@@ -97,13 +127,6 @@ export default function Footer() {
             >
               zodiacmc11@gmail.com
             </a>
-            <p
-              className="font-vt323 text-muted-foreground mt-4"
-              style={{ fontSize: "15px" }}
-            >
-              India's #1 Minecraft server listing site. Connecting players with
-              the best servers since 2024.
-            </p>
           </div>
         </div>
 
@@ -113,15 +136,7 @@ export default function Footer() {
             className="font-vt323 text-muted-foreground"
             style={{ fontSize: "15px" }}
           >
-            © {year}. Built with ❤️ using{" "}
-            <a
-              href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(hostname)}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              caffeine.ai
-            </a>
+            © {year} MINE Lister. All rights reserved.
           </p>
         </div>
       </div>
