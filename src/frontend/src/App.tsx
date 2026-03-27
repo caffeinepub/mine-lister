@@ -1,6 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
 import { useCallback, useEffect, useState } from "react";
-import AdminPanel from "./components/AdminPanel";
 import Footer from "./components/Footer";
 import HeroSection from "./components/HeroSection";
 import Navbar from "./components/Navbar";
@@ -36,8 +35,6 @@ export default function App() {
     loadData();
   }, [loadData]);
 
-  const submissionEnabled = settings.UserSubmissionEnabled === "Yes";
-
   return (
     <div
       className="min-h-screen"
@@ -56,8 +53,7 @@ export default function App() {
           error={error}
           onRetry={loadData}
         />
-        {submissionEnabled && <UserSubmission />}
-        <AdminPanel />
+        <UserSubmission settings={settings} />
       </main>
       <Footer />
     </div>
