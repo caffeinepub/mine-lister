@@ -16,6 +16,19 @@ function getUsers(): StoredUser[] {
   }
 }
 
+// Fire a GA4 event if gtag is available
+function gtagEvent(eventName: string, params: Record<string, string>) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const w = window as any;
+    if (typeof w.gtag === "function") {
+      w.gtag("event", eventName, params);
+    }
+  } catch {
+    // silently ignore if gtag not loaded
+  }
+}
+
 export function useAuth() {
   const [currentUser, setCurrentUser] = useState<string | null>(() =>
     localStorage.getItem(CURRENT_USER_KEY),
@@ -38,6 +51,17 @@ export function useAuth() {
       }
       localStorage.setItem(CURRENT_USER_KEY, username);
       setCurrentUser(username);
+      // Set GA4 user ID and fire login event
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const w = window as any;
+        if (typeof w.gtag === "function") {
+          w.gtag("config", "G-BC637HD0SH", { user_id: username });
+        }
+      } catch {
+        /* ignore */
+      }
+      gtagEvent("login", { method: "username", user_id: username });
       return { success: true };
     },
     [],
@@ -59,14 +83,38 @@ export function useAuth() {
       localStorage.setItem(USERS_KEY, JSON.stringify(users));
       localStorage.setItem(CURRENT_USER_KEY, username);
       setCurrentUser(username);
+      // Set GA4 user ID and fire sign_up event
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const w = window as any;
+        if (typeof w.gtag === "function") {
+          w.gtag("config", "G-BC637HD0SH", { user_id: username });
+        }
+      } catch {
+        /* ignore */
+      }
+      gtagEvent("sign_up", { method: "username", user_id: username });
       return { success: true };
     },
     [],
   );
 
   const logout = useCallback(() => {
+    gtagEvent("logout", {
+      user_id: localStorage.getItem(CURRENT_USER_KEY) ?? "",
+    });
     localStorage.removeItem(CURRENT_USER_KEY);
     setCurrentUser(null);
+    // Clear GA4 user ID on logout
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any;
+      if (typeof w.gtag === "function") {
+        w.gtag("config", "G-BC637HD0SH", { user_id: undefined });
+      }
+    } catch {
+      /* ignore */
+    }
   }, []);
 
   return { currentUser, login, signup, logout };

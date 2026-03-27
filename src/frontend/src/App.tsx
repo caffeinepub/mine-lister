@@ -34,6 +34,23 @@ export default function App() {
   );
   const [selectedServer, setSelectedServer] = useState<ServerData | null>(null);
 
+  // Sync GA4 user_id whenever currentUser changes
+  useEffect(() => {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const w = window as any;
+      if (typeof w.gtag === "function") {
+        if (currentUser) {
+          w.gtag("config", "G-BC637HD0SH", { user_id: currentUser });
+        } else {
+          w.gtag("config", "G-BC637HD0SH", { user_id: undefined });
+        }
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [currentUser]);
+
   const loadData = useCallback(async () => {
     setLoading(true);
     setError(null);
