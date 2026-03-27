@@ -1,7 +1,5 @@
-import { useState } from "react";
-
 const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzk_0uCDTVuwQ8O_VnllqGptBeOONrn_JMFXPet0vMhyg_xbm8rNvfuiyxBDyKa-P_a/exec";
+  "https://script.google.com/macros/s/AKfycbyALZ7A88VlP-xK146Wmo-zayGUShSCv60Mn_wDoe0/dev";
 
 const VERSIONS = [
   "1.8",
@@ -23,26 +21,21 @@ const GAMEMODES = [
   "Prison",
   "BedWars",
 ];
-const SERVER_TYPES = ["Premium", "Cracked"];
 
 interface Props {
   settings: Record<string, string>;
 }
 
-interface FieldErrors {
-  serverName?: string;
-  serverIP?: string;
-  version?: string;
-  gamemode?: string;
-  serverType?: string;
-}
+const sectionStyle: React.CSSProperties = {
+  padding: "64px 0",
+  borderTop: "1px solid oklch(0.3 0.1 260 / 0.4)",
+};
 
 const cardStyle: React.CSSProperties = {
   background: "oklch(0.12 0.025 255)",
   border: "1px solid oklch(0.4 0.15 260 / 0.4)",
   borderRadius: "12px",
   padding: "20px",
-  transition: "border-color 0.2s, box-shadow 0.2s",
 };
 
 const labelStyle: React.CSSProperties = {
@@ -68,150 +61,14 @@ const inputStyle: React.CSSProperties = {
   boxSizing: "border-box",
 };
 
-function FieldCard({
-  children,
-  error,
-}: {
-  children: React.ReactNode;
-  error?: string;
-}) {
-  const [focused, setFocused] = useState(false);
-  return (
-    <div
-      style={{
-        ...cardStyle,
-        borderColor: focused
-          ? "oklch(0.7 0.2 260)"
-          : error
-            ? "oklch(0.65 0.25 10 / 0.7)"
-            : "oklch(0.4 0.15 260 / 0.4)",
-        boxShadow: focused
-          ? "0 0 16px oklch(0.7 0.2 260 / 0.35), 0 0 4px oklch(0.55 0.22 285 / 0.2)"
-          : error
-            ? "0 0 10px oklch(0.65 0.25 10 / 0.2)"
-            : "none",
-      }}
-      onFocusCapture={() => setFocused(true)}
-      onBlurCapture={() => setFocused(false)}
-    >
-      {children}
-      {error && (
-        <p
-          style={{
-            color: "oklch(0.72 0.25 20)",
-            fontSize: "12px",
-            marginTop: "6px",
-            fontFamily: "'VT323', monospace",
-          }}
-        >
-          ⚠ {error}
-        </p>
-      )}
-    </div>
-  );
-}
-
 export default function UserSubmission({ settings }: Props) {
-  const [serverName, setServerName] = useState("");
-  const [serverIP, setServerIP] = useState("");
-  const [version, setVersion] = useState("");
-  const [gamemode, setGamemode] = useState("");
-  const [description, setDescription] = useState("");
-  const [imageURL, setImageURL] = useState("");
-  const [serverType, setServerType] = useState("");
-  const [tags, setTags] = useState("");
-  const [errors, setErrors] = useState<FieldErrors>({});
-  const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [submitError, setSubmitError] = useState("");
-
   if (settings.UserSubmissionEnabled !== "Yes") return null;
 
-  function validate(): boolean {
-    const newErrors: FieldErrors = {};
-    if (!serverName.trim()) newErrors.serverName = "Server Name is required";
-    if (!serverIP.trim()) newErrors.serverIP = "Server IP is required";
-    if (!version) newErrors.version = "Please select a version";
-    if (!gamemode) newErrors.gamemode = "Please select a gamemode";
-    if (!serverType) newErrors.serverType = "Please select a server type";
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!validate()) return;
-    setLoading(true);
-    setSubmitError("");
-    try {
-      await fetch(APPS_SCRIPT_URL, {
-        method: "POST",
-        mode: "no-cors",
-        body: JSON.stringify({
-          serverName,
-          serverIP,
-          version,
-          gamemode,
-          description,
-          imageURL,
-          serverType,
-          tags,
-          userEmail: "guest@minelister.in",
-        }),
-      });
-      setSubmitted(true);
-    } catch {
-      setSubmitError("Failed to submit. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  const Required = () => (
-    <span style={{ color: "oklch(0.72 0.25 320)", marginLeft: "3px" }}>*</span>
-  );
-
-  if (submitted) {
-    return (
-      <section id="submit-server" className="py-16 border-t border-border">
-        <div className="container mx-auto px-4 max-w-3xl">
-          <div
-            data-ocid="submission.success_state"
-            style={{
-              background: "oklch(0.12 0.025 255)",
-              border: "1px solid oklch(0.6 0.2 145 / 0.5)",
-              borderRadius: "16px",
-              padding: "48px 32px",
-              textAlign: "center",
-              boxShadow:
-                "0 0 40px oklch(0.6 0.2 145 / 0.2), 0 0 80px oklch(0.6 0.2 145 / 0.1)",
-            }}
-          >
-            <div style={{ fontSize: "48px", marginBottom: "16px" }}>✅</div>
-            <h3
-              className="font-pixel neon-cyan"
-              style={{ fontSize: "14px", marginBottom: "12px" }}
-            >
-              SUBMITTED!
-            </h3>
-            <p
-              className="font-vt323"
-              style={{ color: "oklch(0.8 0.1 145)", fontSize: "20px" }}
-            >
-              Your server has been submitted! We'll review it within 24–48
-              hours.
-            </p>
-          </div>
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section id="submit-server" className="py-16 border-t border-border">
-      <div className="container mx-auto px-4 max-w-3xl">
+    <section id="submit-server" style={sectionStyle}>
+      <div style={{ maxWidth: "768px", margin: "0 auto", padding: "0 16px" }}>
         {/* Header */}
-        <div className="text-center mb-10">
+        <div style={{ textAlign: "center", marginBottom: "40px" }}>
           <h2
             className="font-pixel neon-cyan"
             style={{ fontSize: "clamp(10px, 2vw, 16px)", marginBottom: "12px" }}
@@ -226,8 +83,14 @@ export default function UserSubmission({ settings }: Props) {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} noValidate>
-          {/* Grid: 2 cols desktop, 1 col mobile */}
+        {/* Native HTML form — method POST, action points to Apps Script */}
+        <form
+          method="POST"
+          action={APPS_SCRIPT_URL}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {/* 2-column grid */}
           <div
             style={{
               display: "grid",
@@ -237,48 +100,48 @@ export default function UserSubmission({ settings }: Props) {
             }}
           >
             {/* Server Name */}
-            <FieldCard error={errors.serverName}>
+            <div style={cardStyle}>
               <label htmlFor="serverName" style={labelStyle}>
-                Server Name <Required />
+                Server Name{" "}
+                <span style={{ color: "oklch(0.72 0.25 320)" }}>*</span>
               </label>
               <input
                 id="serverName"
+                name="serverName"
                 type="text"
-                value={serverName}
-                onChange={(e) => setServerName(e.target.value)}
+                required
                 placeholder="e.g. Indiacraft SMP"
                 style={inputStyle}
-                data-ocid="submission.server_name.input"
               />
-            </FieldCard>
+            </div>
 
             {/* Server IP */}
-            <FieldCard error={errors.serverIP}>
+            <div style={cardStyle}>
               <label htmlFor="serverIP" style={labelStyle}>
-                Server IP <Required />
+                Server IP{" "}
+                <span style={{ color: "oklch(0.72 0.25 320)" }}>*</span>
               </label>
               <input
                 id="serverIP"
+                name="serverIP"
                 type="text"
-                value={serverIP}
-                onChange={(e) => setServerIP(e.target.value)}
+                required
                 placeholder="e.g. play.indiacraft.in"
                 style={inputStyle}
-                data-ocid="submission.server_ip.input"
               />
-            </FieldCard>
+            </div>
 
             {/* Version */}
-            <FieldCard error={errors.version}>
+            <div style={cardStyle}>
               <label htmlFor="version" style={labelStyle}>
-                Version <Required />
+                Version <span style={{ color: "oklch(0.72 0.25 320)" }}>*</span>
               </label>
               <select
                 id="version"
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
+                name="version"
+                required
+                defaultValue=""
                 style={{ ...inputStyle, cursor: "pointer" }}
-                data-ocid="submission.version.select"
               >
                 <option value="" disabled>
                   Select version...
@@ -289,19 +152,20 @@ export default function UserSubmission({ settings }: Props) {
                   </option>
                 ))}
               </select>
-            </FieldCard>
+            </div>
 
             {/* Gamemode */}
-            <FieldCard error={errors.gamemode}>
+            <div style={cardStyle}>
               <label htmlFor="gamemode" style={labelStyle}>
-                Gamemode <Required />
+                Gamemode{" "}
+                <span style={{ color: "oklch(0.72 0.25 320)" }}>*</span>
               </label>
               <select
                 id="gamemode"
-                value={gamemode}
-                onChange={(e) => setGamemode(e.target.value)}
+                name="gamemode"
+                required
+                defaultValue=""
                 style={{ ...inputStyle, cursor: "pointer" }}
-                data-ocid="submission.gamemode.select"
               >
                 <option value="" disabled>
                   Select gamemode...
@@ -312,41 +176,38 @@ export default function UserSubmission({ settings }: Props) {
                   </option>
                 ))}
               </select>
-            </FieldCard>
+            </div>
 
             {/* Server Type */}
-            <FieldCard error={errors.serverType}>
+            <div style={cardStyle}>
               <label htmlFor="serverType" style={labelStyle}>
-                Server Type <Required />
+                Server Type{" "}
+                <span style={{ color: "oklch(0.72 0.25 320)" }}>*</span>
               </label>
               <select
                 id="serverType"
-                value={serverType}
-                onChange={(e) => setServerType(e.target.value)}
+                name="serverType"
+                required
+                defaultValue=""
                 style={{ ...inputStyle, cursor: "pointer" }}
-                data-ocid="submission.server_type.select"
               >
                 <option value="" disabled>
                   Select type...
                 </option>
-                {SERVER_TYPES.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
+                <option value="Premium">Premium</option>
+                <option value="Cracked">Cracked</option>
               </select>
-            </FieldCard>
+            </div>
 
-            {/* Image/Logo URL */}
-            <FieldCard>
+            {/* Image URL */}
+            <div style={cardStyle}>
               <label htmlFor="imageURL" style={labelStyle}>
-                Image / Logo URL
+                Image URL{" "}
                 <span
                   style={{
                     color: "oklch(0.5 0.08 260)",
-                    marginLeft: "6px",
+                    fontSize: "9px",
                     textTransform: "none",
-                    fontSize: "10px",
                   }}
                 >
                   (optional)
@@ -354,30 +215,27 @@ export default function UserSubmission({ settings }: Props) {
               </label>
               <input
                 id="imageURL"
+                name="imageURL"
                 type="text"
-                value={imageURL}
-                onChange={(e) => setImageURL(e.target.value)}
                 placeholder="https://..."
                 style={inputStyle}
-                data-ocid="submission.image_url.input"
               />
-            </FieldCard>
+            </div>
           </div>
 
-          {/* Full-width rows */}
+          {/* Full-width fields */}
           <div
             style={{ display: "flex", flexDirection: "column", gap: "16px" }}
           >
             {/* Description */}
-            <FieldCard>
+            <div style={cardStyle}>
               <label htmlFor="description" style={labelStyle}>
-                Description
+                Description{" "}
                 <span
                   style={{
                     color: "oklch(0.5 0.08 260)",
-                    marginLeft: "6px",
+                    fontSize: "9px",
                     textTransform: "none",
-                    fontSize: "10px",
                   }}
                 >
                   (optional)
@@ -385,25 +243,22 @@ export default function UserSubmission({ settings }: Props) {
               </label>
               <textarea
                 id="description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                name="description"
                 placeholder="Tell players about your server..."
                 rows={4}
                 style={{ ...inputStyle, resize: "vertical" }}
-                data-ocid="submission.description.textarea"
               />
-            </FieldCard>
+            </div>
 
             {/* Tags */}
-            <FieldCard>
+            <div style={cardStyle}>
               <label htmlFor="tags" style={labelStyle}>
-                Tags
+                Tags{" "}
                 <span
                   style={{
                     color: "oklch(0.5 0.08 260)",
-                    marginLeft: "6px",
+                    fontSize: "9px",
                     textTransform: "none",
-                    fontSize: "10px",
                   }}
                 >
                   (optional)
@@ -411,36 +266,15 @@ export default function UserSubmission({ settings }: Props) {
               </label>
               <input
                 id="tags"
+                name="tags"
                 type="text"
-                value={tags}
-                onChange={(e) => setTags(e.target.value)}
                 placeholder="e.g. Economy, PvP, Custom Enchants"
                 style={inputStyle}
-                data-ocid="submission.tags.input"
               />
-            </FieldCard>
+            </div>
           </div>
 
-          {/* Error message */}
-          {submitError && (
-            <div
-              data-ocid="submission.error_state"
-              style={{
-                marginTop: "16px",
-                padding: "12px 16px",
-                borderRadius: "8px",
-                background: "oklch(0.18 0.05 15)",
-                border: "1px solid oklch(0.65 0.25 10 / 0.5)",
-                color: "oklch(0.8 0.2 20)",
-                fontFamily: "'VT323', monospace",
-                fontSize: "16px",
-              }}
-            >
-              ⚠ {submitError}
-            </div>
-          )}
-
-          {/* Submit button */}
+          {/* Submit */}
           <div
             style={{
               marginTop: "28px",
@@ -450,68 +284,47 @@ export default function UserSubmission({ settings }: Props) {
           >
             <button
               type="submit"
-              disabled={loading}
-              data-ocid="submission.submit_button"
               style={{
-                background: loading
-                  ? "oklch(0.3 0.08 260)"
-                  : "linear-gradient(135deg, oklch(0.55 0.22 245), oklch(0.5 0.25 285))",
+                background:
+                  "linear-gradient(135deg, oklch(0.55 0.22 245), oklch(0.5 0.25 285))",
                 color: "#fff",
                 border: "none",
                 borderRadius: "10px",
                 padding: "14px 48px",
                 fontSize: "13px",
                 fontFamily: "'Press Start 2P', cursive",
-                cursor: loading ? "not-allowed" : "pointer",
-                boxShadow: loading
-                  ? "none"
-                  : "0 0 20px oklch(0.55 0.22 245 / 0.5), 0 0 40px oklch(0.5 0.25 285 / 0.3)",
-                transition: "all 0.2s",
-                display: "flex",
-                alignItems: "center",
-                gap: "10px",
+                cursor: "pointer",
+                boxShadow:
+                  "0 0 20px oklch(0.55 0.22 245 / 0.5), 0 0 40px oklch(0.5 0.25 285 / 0.3)",
                 width: "100%",
                 maxWidth: "360px",
-                justifyContent: "center",
               }}
             >
-              {loading ? (
-                <>
-                  <span
-                    style={{
-                      display: "inline-block",
-                      width: "14px",
-                      height: "14px",
-                      border: "2px solid oklch(0.7 0.1 260 / 0.4)",
-                      borderTopColor: "#fff",
-                      borderRadius: "50%",
-                      animation: "spin 0.7s linear infinite",
-                    }}
-                  />
-                  SUBMITTING...
-                </>
-              ) : (
-                "SUBMIT SERVER"
-              )}
+              Submit Server
             </button>
           </div>
         </form>
       </div>
 
       <style>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-        input::placeholder, textarea::placeholder {
+        #submit-server input::placeholder,
+        #submit-server textarea::placeholder {
           color: oklch(0.45 0.06 260);
         }
-        select option {
+        #submit-server select option {
           background: oklch(0.12 0.025 255);
           color: #fff;
         }
-        input:focus, select:focus, textarea:focus {
+        #submit-server input:focus,
+        #submit-server select:focus,
+        #submit-server textarea:focus {
           border-color: oklch(0.7 0.2 260) !important;
           box-shadow: 0 0 0 2px oklch(0.7 0.2 260 / 0.2);
+        }
+        #submit-server button[type="submit"]:hover {
+          filter: brightness(1.15);
+          transform: translateY(-1px);
+          transition: all 0.15s;
         }
       `}</style>
     </section>
