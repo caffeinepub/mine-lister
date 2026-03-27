@@ -36,6 +36,8 @@ export interface ServerData {
   serverType: "Premium" | "Cracked";
   tags: string[];
   featured: boolean;
+  approved?: string;
+  submittedBy?: string;
 }
 
 // Sample fallback data shown when the Google Sheet is not yet configured
@@ -50,6 +52,7 @@ export const SAMPLE_SERVERS: ServerData[] = [
     serverType: "Premium",
     tags: ["New", "Economy", "Jobs"],
     featured: true,
+    approved: "Yes",
   },
   {
     name: "CraftIndia",
@@ -61,6 +64,7 @@ export const SAMPLE_SERVERS: ServerData[] = [
     serverType: "Cracked",
     tags: ["Factions", "PvP"],
     featured: true,
+    approved: "Yes",
   },
   {
     name: "BlockNation",
@@ -72,6 +76,7 @@ export const SAMPLE_SERVERS: ServerData[] = [
     serverType: "Premium",
     tags: ["Skyblock"],
     featured: false,
+    approved: "Yes",
   },
   {
     name: "PvPLegends",
@@ -83,6 +88,7 @@ export const SAMPLE_SERVERS: ServerData[] = [
     serverType: "Cracked",
     tags: ["PvP", "Hardcore"],
     featured: false,
+    approved: "Yes",
   },
   {
     name: "Indiacraft",
@@ -94,6 +100,7 @@ export const SAMPLE_SERVERS: ServerData[] = [
     serverType: "Premium",
     tags: ["Creative", "Building"],
     featured: false,
+    approved: "Yes",
   },
   {
     name: "HindiCraft",
@@ -105,6 +112,7 @@ export const SAMPLE_SERVERS: ServerData[] = [
     serverType: "Cracked",
     tags: ["Minigames", "Fun"],
     featured: false,
+    approved: "Yes",
   },
 ];
 
@@ -179,6 +187,8 @@ export async function fetchServers(): Promise<ServerData[]> {
               .filter(Boolean)
           : [],
         featured: row[8]?.toLowerCase() === "yes",
+        approved: row[9] ?? "",
+        submittedBy: row[10] ?? "",
       }));
     // Featured servers first
     return servers.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
@@ -216,5 +226,92 @@ export async function fetchSettings(): Promise<Record<string, string>> {
     return settings;
   } catch {
     return {};
+  }
+}
+
+const SERVERS_API_URL =
+  "https://script.google.com/macros/s/AKfycbzNs8NJl8kLfD_cIflBi0-1j-NOA1XzQW8aCxh7vc6eVrPWYtrzJ0dQeuanMXMunu_q/exec";
+
+/**
+ * Fetch servers from the Google Apps Script JSON API.
+ * Only returns approved servers (Approved === "Yes").
+ * Featured servers are sorted to the top.
+ * Falls back to SAMPLE_SERVERS on error.
+ *
+ * Expected API field names (exact, with spaces):
+ *   "Server Name", "Server IP", "Version", "Gamemode",
+ *   "Server Type", "Featured", "Approved", "Description", "Tags", "ImageURL", "Submitted By"
+ */
+export async function fetchServersFromAPI(): Promise<ServerData[]> {
+  try {
+    const res = await fetch(SERVERS_API_URL);
+    if (!res.ok) throw new Error("Failed to fetch servers from API");
+    const json = await res.json();
+
+    // Handle both array and { data: [...] } response shapes
+    const raw: Record<string, string>[] = Array.isArray(json)
+      ? json
+      : Array.isArray(json?.data)
+        ? json.data
+        : [];
+
+    /**
+     * Look up a field by trying each candidate key.
+     * Returns the value of the first matching key (exact match first,
+     * then case-insensitive), or "" if not found.
+     */
+    function getField(obj: Record<string, string>, ...keys: string[]): string {
+      for (const key of keys) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) {
+          return obj[key] ?? "";
+        }
+        const match = Object.keys(obj).find(
+          (k) => k.toLowerCase() === key.toLowerCase(),
+        );
+        if (match !== undefined) return obj[match] ?? "";
+      }
+      return "";
+    }
+
+    const servers: ServerData[] = raw
+      .filter((row) => getField(row, "Approved").toLowerCase() === "yes")
+      .map((row) => {
+        const tagsRaw = getField(row, "Tags");
+        const ip = getField(row, "Server IP", "ServerIP", "IP");
+        return {
+          name: getField(row, "Server Name", "ServerName", "Name"),
+          ip,
+          version: getField(row, "Version"),
+          gamemode: getField(row, "Gamemode"),
+          description: getField(row, "Description"),
+          imageURL: getField(row, "ImageURL", "Image URL"),
+          serverType:
+            getField(row, "Server Type", "ServerType").toLowerCase() ===
+            "cracked"
+              ? "Cracked"
+              : "Premium",
+          tags: tagsRaw
+            ? tagsRaw
+                .split(",")
+                .map((t) => t.trim())
+                .filter(Boolean)
+            : [],
+          featured: getField(row, "Featured").toLowerCase() === "yes",
+          approved: getField(row, "Approved"),
+          submittedBy: getField(
+            row,
+            "Submitted By",
+            "submittedBy",
+            "SubmittedBy",
+          ),
+        };
+      });
+
+    // Featured servers first
+    return servers.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+  } catch {
+    return [...SAMPLE_SERVERS].sort(
+      (a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0),
+    );
   }
 }

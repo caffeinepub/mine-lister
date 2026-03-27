@@ -31,21 +31,24 @@ const PLACEHOLDER_GRADIENTS = [
 export default function ServerCard({ server, index }: ServerCardProps) {
   const [copied, setCopied] = useState(false);
 
+  // Treat ip as available only when the string is non-empty after trimming
+  const ipValue = server.ip?.trim() ?? "";
+  const hasIP = ipValue.length > 0;
+
   const handleCopy = async () => {
+    if (!hasIP) return;
     try {
-      await navigator.clipboard.writeText(server.ip);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(ipValue);
     } catch {
       const el = document.createElement("textarea");
-      el.value = server.ip;
+      el.value = ipValue;
       document.body.appendChild(el);
       el.select();
       document.execCommand("copy");
       document.body.removeChild(el);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const placeholderBg =
@@ -148,7 +151,7 @@ export default function ServerCard({ server, index }: ServerCardProps) {
 
         {/* Tags */}
         {server.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-4">
+          <div className="flex flex-wrap gap-1 mb-3">
             {server.tags.map((tag) => (
               <span
                 key={tag}
@@ -166,32 +169,95 @@ export default function ServerCard({ server, index }: ServerCardProps) {
           </div>
         )}
 
-        {/* Footer row: version + copy IP */}
-        <div className="flex items-center justify-between gap-2 mt-auto">
+        {/* Server IP Section */}
+        <div
+          className="rounded-md px-3 py-2 mb-3"
+          style={{
+            background: "oklch(0.10 0.03 255)",
+            border: "1px solid oklch(0.35 0.1 255 / 0.4)",
+          }}
+        >
+          <p
+            className="font-pixel mb-1"
+            style={{ fontSize: "7px", color: "oklch(0.55 0.08 255)" }}
+          >
+            SERVER IP
+          </p>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              {hasIP ? (
+                <>
+                  <span
+                    className="font-vt323 font-bold block truncate"
+                    style={{ fontSize: "18px", color: "oklch(0.88 0.12 215)" }}
+                  >
+                    IP: {ipValue}
+                  </span>
+                  <span
+                    className="font-vt323"
+                    style={{ fontSize: "12px", color: "oklch(0.5 0.06 255)" }}
+                  >
+                    Click to copy
+                  </span>
+                </>
+              ) : (
+                <span
+                  className="font-vt323"
+                  style={{ fontSize: "16px", color: "oklch(0.45 0.04 255)" }}
+                >
+                  IP not available
+                </span>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={handleCopy}
+              disabled={!hasIP}
+              className="flex items-center gap-1 px-2.5 py-1.5 rounded transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                color: copied ? "oklch(0.78 0.2 160)" : "oklch(0.78 0.18 215)",
+                border: `1px solid ${
+                  copied
+                    ? "oklch(0.6 0.2 160 / 0.5)"
+                    : "oklch(0.5 0.15 215 / 0.5)"
+                }`,
+                background: copied
+                  ? "oklch(0.6 0.2 160 / 0.08)"
+                  : "oklch(0.5 0.15 215 / 0.08)",
+              }}
+              title={hasIP ? `Copy IP: ${ipValue}` : "No IP available"}
+              data-ocid={`server.button.${index + 1}`}
+              onMouseEnter={(e) => {
+                if (!hasIP) return;
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 0 8px oklch(0.7 0.2 215 / 0.6), 0 0 16px oklch(0.6 0.18 215 / 0.3)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+              }}
+            >
+              {copied ? (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  <span className="font-vt323" style={{ fontSize: "14px" }}>
+                    Copied ✓
+                  </span>
+                </>
+              ) : (
+                <Copy className="h-3.5 w-3.5" />
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Footer row: version + gamemode */}
+        <div className="flex items-center mt-auto">
           <span
             className="font-vt323 text-muted-foreground"
             style={{ fontSize: "15px" }}
           >
             {server.version} · {server.gamemode}
           </span>
-          <button
-            type="button"
-            onClick={handleCopy}
-            className="font-vt323 flex items-center gap-1 border border-primary/50 px-3 py-1 rounded text-primary hover:bg-primary hover:text-primary-foreground transition-all duration-150 active:scale-95"
-            style={{ fontSize: "15px" }}
-            title={`Copy IP: ${server.ip}`}
-            data-ocid={`server.button.${index + 1}`}
-          >
-            {copied ? (
-              <>
-                <Check className="h-3 w-3" /> Copied!
-              </>
-            ) : (
-              <>
-                <Copy className="h-3 w-3" /> {server.ip}
-              </>
-            )}
-          </button>
         </div>
       </div>
     </article>

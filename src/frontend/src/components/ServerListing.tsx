@@ -285,7 +285,7 @@ export default function ServerListing({
                   className="font-vt323 text-muted-foreground"
                   style={{ fontSize: "22px" }}
                 >
-                  No servers match your filters.
+                  No servers available
                 </p>
               </div>
             ) : (
