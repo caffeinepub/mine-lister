@@ -42,6 +42,7 @@ export default function ServerDetailPage({
       applicationCategory: "GameApplication",
       operatingSystem: "Minecraft Java/Bedrock",
       description: server.description,
+      keywords: server.tags.join(", "),
       offers: { "@type": "Offer", price: "0" },
     });
     document.head.appendChild(script);

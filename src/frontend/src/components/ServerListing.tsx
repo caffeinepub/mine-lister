@@ -6,7 +6,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RefreshCw, Search, ServerCrash } from "lucide-react";
+import { RefreshCw, Search, ServerCrash, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { ServerData } from "../utils/sheetsParser";
 import ServerCard from "./ServerCard";
@@ -58,6 +58,7 @@ export default function ServerListing({
   const [filterGamemode, setFilterGamemode] = useState("all");
   const [filterType, setFilterType] = useState("all");
   const [featuredOnly, setFeaturedOnly] = useState(false);
+  const [filterTag, setFilterTag] = useState("");
 
   const versions = useMemo(() => {
     const set = new Set(servers.map((s) => s.version).filter(Boolean));
@@ -81,6 +82,11 @@ export default function ServerListing({
         return false;
       if (filterType !== "all" && s.serverType !== filterType) return false;
       if (featuredOnly && !s.featured) return false;
+      if (
+        filterTag &&
+        !s.tags.some((t) => t.toLowerCase() === filterTag.toLowerCase())
+      )
+        return false;
       return true;
     });
   }, [
@@ -90,11 +96,18 @@ export default function ServerListing({
     filterGamemode,
     filterType,
     featuredOnly,
+    filterTag,
   ]);
 
   const handleCategoryClick = (label: string) => {
     setFilterGamemode((prev) =>
       prev.toLowerCase() === label.toLowerCase() ? "all" : label,
+    );
+  };
+
+  const handleTagClick = (tag: string) => {
+    setFilterTag((prev) =>
+      prev.toLowerCase() === tag.toLowerCase() ? "" : tag,
     );
   };
 
@@ -146,7 +159,7 @@ export default function ServerListing({
 
         {/* Filter controls */}
         <div
-          className="flex flex-wrap items-center gap-3 mb-8 p-4 rounded-lg border border-border"
+          className="flex flex-wrap items-center gap-3 mb-4 p-4 rounded-lg border border-border"
           style={{ background: "oklch(0.12 0.025 255)" }}
           data-ocid="server.panel"
         >
@@ -292,6 +305,34 @@ export default function ServerListing({
           </label>
         </div>
 
+        {/* Active tag filter indicator */}
+        {filterTag && (
+          <div className="flex items-center gap-2 mb-6">
+            <span
+              className="font-vt323"
+              style={{ fontSize: "16px", color: "oklch(0.55 0.08 255)" }}
+            >
+              Filtering by:
+            </span>
+            <button
+              type="button"
+              onClick={() => setFilterTag("")}
+              className="font-vt323 flex items-center gap-1.5 px-3 py-1 rounded-full border transition-all duration-200 hover:brightness-110"
+              style={{
+                fontSize: "15px",
+                color: "oklch(0.82 0.22 285)",
+                borderColor: "oklch(0.55 0.22 285 / 0.6)",
+                background: "oklch(0.55 0.22 285 / 0.12)",
+                boxShadow: "0 0 8px oklch(0.55 0.22 285 / 0.25)",
+              }}
+              data-ocid="server.toggle"
+            >
+              #{filterTag}
+              <X className="h-3 w-3" />
+            </button>
+          </div>
+        )}
+
         {/* Loading state */}
         {loading && (
           <div
@@ -353,6 +394,7 @@ export default function ServerListing({
                     server={server}
                     index={i}
                     onServerClick={onServerClick}
+                    onTagClick={handleTagClick}
                   />
                 ))}
               </div>

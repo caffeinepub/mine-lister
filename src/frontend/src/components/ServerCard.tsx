@@ -6,6 +6,7 @@ interface ServerCardProps {
   server: ServerData;
   index: number;
   onServerClick?: (server: ServerData) => void;
+  onTagClick?: (tag: string) => void;
 }
 
 const TAG_COLORS: Record<string, string> = {
@@ -33,6 +34,7 @@ export default function ServerCard({
   server,
   index,
   onServerClick,
+  onTagClick,
 }: ServerCardProps) {
   const [copied, setCopied] = useState(false);
 
@@ -157,20 +159,37 @@ export default function ServerCard({
         {/* Tags */}
         {server.tags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3">
-            {server.tags.map((tag) => (
-              <span
-                key={tag}
-                className="font-vt323 text-xs px-2 py-0.5 rounded-full"
-                style={{
-                  fontSize: "13px",
-                  color: TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)",
-                  background: "oklch(0.16 0.02 255)",
-                  border: `1px solid ${TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)"}/30`,
-                }}
-              >
-                {tag}
-              </span>
-            ))}
+            {server.tags.map((tag) =>
+              onTagClick ? (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => onTagClick(tag)}
+                  className="font-vt323 text-xs px-2 py-0.5 rounded-full cursor-pointer transition-all duration-150 hover:brightness-125 hover:scale-105"
+                  style={{
+                    fontSize: "13px",
+                    color: TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)",
+                    background: "oklch(0.16 0.02 255)",
+                    border: `1px solid ${TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)"}/30`,
+                  }}
+                >
+                  #{tag}
+                </button>
+              ) : (
+                <span
+                  key={tag}
+                  className="font-vt323 text-xs px-2 py-0.5 rounded-full"
+                  style={{
+                    fontSize: "13px",
+                    color: TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)",
+                    background: "oklch(0.16 0.02 255)",
+                    border: `1px solid ${TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)"}/30`,
+                  }}
+                >
+                  {tag}
+                </span>
+              ),
+            )}
           </div>
         )}
 
