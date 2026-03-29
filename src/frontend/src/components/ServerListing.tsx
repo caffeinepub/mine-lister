@@ -28,6 +28,7 @@ const CATEGORY_PILLS = [
   { label: "Factions", id: "factions" },
   { label: "PvP", id: "pvp" },
   { label: "Minigames", id: "minigames" },
+  { label: "BedWars", id: "bedwars" },
   { label: "Prison", id: "prison" },
   { label: "Lifesteal", id: "lifesteal" },
 ];
@@ -116,10 +117,11 @@ export default function ServerListing({
       <div className="container mx-auto px-4">
         {/* Section heading */}
         <h2
+          id="top-servers"
           className="font-pixel neon-gold text-center mb-6"
           style={{ fontSize: "clamp(10px, 2vw, 16px)" }}
         >
-          Browse All Minecraft Servers
+          Top Minecraft Servers
         </h2>
 
         {/* Category quick-link pills */}
@@ -374,6 +376,17 @@ export default function ServerListing({
         {/* Server grid */}
         {!loading && !error && (
           <>
+            {/* SEO intro paragraph */}
+            <p
+              className="font-vt323 text-muted-foreground text-center mb-8 max-w-3xl mx-auto"
+              style={{ fontSize: "18px" }}
+            >
+              This website lists the best Minecraft servers including cracked
+              and premium servers. Players can join servers for BedWars,
+              Survival, Skyblock, PvP and more. Browse our list and find your
+              perfect server today.
+            </p>
+
             {filtered.length === 0 ? (
               <div
                 className="text-center py-16 rounded-lg border border-border"
@@ -405,6 +418,113 @@ export default function ServerListing({
             >
               Showing {filtered.length} of {servers.length} servers
             </p>
+
+            {/* SEO anchor sections for categories */}
+            <div className="mt-16 space-y-8">
+              <section id="cracked-servers" className="scroll-mt-20">
+                <h2
+                  className="font-pixel neon-cyan mb-3"
+                  style={{ fontSize: "clamp(9px, 1.8vw, 14px)" }}
+                >
+                  Cracked Minecraft Servers
+                </h2>
+                <p
+                  className="font-vt323 text-muted-foreground mb-3"
+                  style={{ fontSize: "17px" }}
+                >
+                  Free-to-play cracked Minecraft servers compatible with
+                  TLauncher and non-premium accounts. No paid account needed!
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterType("Cracked");
+                    document
+                      .getElementById("top-servers")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="font-vt323 px-4 py-1 rounded border transition-all duration-200 hover:bg-primary/20"
+                  style={{
+                    fontSize: "16px",
+                    color: "oklch(0.75 0.12 255)",
+                    borderColor: "oklch(0.35 0.08 255 / 0.5)",
+                  }}
+                  data-ocid="server.link"
+                >
+                  View All Cracked Servers →
+                </button>
+              </section>
+
+              <section id="premium-servers" className="scroll-mt-20">
+                <h2
+                  className="font-pixel neon-cyan mb-3"
+                  style={{ fontSize: "clamp(9px, 1.8vw, 14px)" }}
+                >
+                  Premium Minecraft Servers
+                </h2>
+                <p
+                  className="font-vt323 text-muted-foreground mb-3"
+                  style={{ fontSize: "17px" }}
+                >
+                  Official premium Minecraft servers for players with a paid
+                  Mojang/Microsoft account. Enjoy exclusive features and
+                  dedicated communities.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterType("Premium");
+                    document
+                      .getElementById("top-servers")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="font-vt323 px-4 py-1 rounded border transition-all duration-200 hover:bg-primary/20"
+                  style={{
+                    fontSize: "16px",
+                    color: "oklch(0.75 0.12 255)",
+                    borderColor: "oklch(0.35 0.08 255 / 0.5)",
+                  }}
+                  data-ocid="server.link"
+                >
+                  View All Premium Servers →
+                </button>
+              </section>
+
+              <section id="recently-added" className="scroll-mt-20">
+                <h2
+                  className="font-pixel neon-cyan mb-3"
+                  style={{ fontSize: "clamp(9px, 1.8vw, 14px)" }}
+                >
+                  Recently Added Servers
+                </h2>
+                <p
+                  className="font-vt323 text-muted-foreground mb-3"
+                  style={{ fontSize: "17px" }}
+                >
+                  The newest Minecraft servers added to MINE Lister. Be the
+                  first to join and build your community!
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setFilterType("all");
+                    setSearch("");
+                    document
+                      .getElementById("top-servers")
+                      ?.scrollIntoView({ behavior: "smooth" });
+                  }}
+                  className="font-vt323 px-4 py-1 rounded border transition-all duration-200 hover:bg-primary/20"
+                  style={{
+                    fontSize: "16px",
+                    color: "oklch(0.75 0.12 255)",
+                    borderColor: "oklch(0.35 0.08 255 / 0.5)",
+                  }}
+                  data-ocid="server.link"
+                >
+                  Browse All Servers →
+                </button>
+              </section>
+            </div>
           </>
         )}
       </div>

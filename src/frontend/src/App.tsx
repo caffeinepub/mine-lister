@@ -10,10 +10,22 @@ import ServerDetailPage from "./components/ServerDetailPage";
 import ServerListing from "./components/ServerListing";
 import UserSubmission from "./components/UserSubmission";
 import { useAuth } from "./hooks/useAuth";
+import {
+  type ServerStats,
+  computeStats,
+  loadStats,
+  saveStats,
+} from "./utils/serverStats";
 import type { ServerData } from "./utils/sheetsParser";
 import { fetchServersFromAPI } from "./utils/sheetsParser";
 
 type Page = "home" | "my-servers";
+
+function gtag(...args: unknown[]) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const w = window as any;
+  if (typeof w.gtag === "function") w.gtag(...args);
+}
 
 function setPageMeta(title: string, description?: string) {
   document.title = title;
@@ -24,6 +36,7 @@ function setPageMeta(title: string, description?: string) {
 export default function App() {
   const { currentUser, login, signup, logout } = useAuth();
   const [servers, setServers] = useState<ServerData[]>([]);
+  const [stats, setStats] = useState<ServerStats>(() => loadStats());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitOpen, setSubmitOpen] = useState(false);
@@ -37,14 +50,10 @@ export default function App() {
   // Sync GA4 user_id whenever currentUser changes
   useEffect(() => {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const w = window as any;
-      if (typeof w.gtag === "function") {
-        if (currentUser) {
-          w.gtag("config", "G-BC637HD0SH", { user_id: currentUser });
-        } else {
-          w.gtag("config", "G-BC637HD0SH", { user_id: undefined });
-        }
+      if (currentUser) {
+        gtag("config", "G-BC637HD0SH", { user_id: currentUser });
+      } else {
+        gtag("config", "G-BC637HD0SH", { user_id: undefined });
       }
     } catch {
       /* ignore */
@@ -57,6 +66,9 @@ export default function App() {
     try {
       const serversData = await fetchServersFromAPI();
       setServers(serversData);
+      const computed = computeStats(serversData);
+      setStats(computed);
+      saveStats(computed);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load data");
     } finally {
@@ -68,24 +80,38 @@ export default function App() {
     loadData();
   }, [loadData]);
 
+  // Track virtual pageviews on route/page changes
   useEffect(() => {
+    let pageTitle: string;
+    let pagePath: string;
+    let pageDescription: string;
+
     if (selectedServer) {
-      setPageMeta(
-        `${selectedServer.name} Minecraft Server | MINE Lister`,
+      pageTitle = `${selectedServer.name} Minecraft Server | MINE Lister`;
+      pagePath = `/server/${selectedServer.name.toLowerCase().replace(/\s+/g, "-")}`;
+      pageDescription =
         selectedServer.description ||
-          "Discover the best Minecraft servers including Survival, Skyblock, Factions, and more.",
-      );
+        "Discover the best Minecraft servers including Survival, Skyblock, Factions, and more.";
     } else if (page === "my-servers") {
-      setPageMeta(
-        "Manage Your Minecraft Servers | MINE Lister",
-        "View and manage your Minecraft server listings on MINE Lister.",
-      );
+      pageTitle = "Manage Your Minecraft Servers | MINE Lister";
+      pagePath = "/my-servers";
+      pageDescription =
+        "View and manage your Minecraft server listings on MINE Lister.";
     } else {
-      setPageMeta(
-        "Minecraft Server List 2026 | Find Best Cracked & Premium Servers | MINE Lister",
-        "Discover the best Minecraft servers including Survival, Skyblock, Factions, and more. List your server for free on MINE Lister.",
-      );
+      pageTitle = "Best Minecraft Servers (Cracked & Premium) | MCServerHub";
+      pagePath = "/";
+      pageDescription =
+        "Discover the best Minecraft servers including Survival, Skyblock, Factions, and more. List your server for free on MINE Lister.";
     }
+
+    setPageMeta(pageTitle, pageDescription);
+
+    // Send GA4 page_view event for every route change
+    gtag("event", "page_view", {
+      page_title: pageTitle,
+      page_path: pagePath,
+      page_location: window.location.origin + pagePath,
+    });
   }, [page, selectedServer]);
 
   const handleServerClick = (server: ServerData) => {
@@ -143,7 +169,7 @@ export default function App() {
       <main>
         {page === "home" && !selectedServer ? (
           <>
-            <HeroSection serverCount={servers.length} />
+            <HeroSection serverCount={servers.length} stats={stats} />
             <ServerListing
               servers={servers}
               loading={loading}

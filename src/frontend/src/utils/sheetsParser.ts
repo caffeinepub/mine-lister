@@ -38,6 +38,8 @@ export interface ServerData {
   featured: boolean;
   approved?: string;
   submittedBy?: string;
+  players?: number;
+  votes?: number;
 }
 
 // Sample fallback data shown when the Google Sheet is not yet configured
@@ -47,72 +49,105 @@ export const SAMPLE_SERVERS: ServerData[] = [
     ip: "play.zodiacmc.in",
     version: "1.20.4",
     gamemode: "SMP",
-    description: "India's best survival server with economy and jobs!",
+    description:
+      "India's best cracked and premium SMP server with economy, jobs, and 100+ active players. TLauncher compatible.",
     imageURL: "",
     serverType: "Premium",
     tags: ["New", "Economy", "Jobs"],
     featured: true,
     approved: "Yes",
+    players: 112,
+    votes: 312,
   },
   {
     name: "CraftIndia",
     ip: "play.craftindia.net",
     version: "1.19.4",
     gamemode: "Factions",
-    description: "Epic factions warfare server for Indian players.",
+    description:
+      "Epic cracked Minecraft Factions server for Indian players. PvP warfare with custom enchants. Join with TLauncher!",
     imageURL: "",
     serverType: "Cracked",
     tags: ["Factions", "PvP"],
     featured: true,
     approved: "Yes",
+    players: 83,
+    votes: 198,
   },
   {
     name: "BlockNation",
     ip: "play.blocknation.in",
     version: "1.20.1",
     gamemode: "Skyblock",
-    description: "Build your island high in the sky!",
+    description:
+      "Top Skyblock server in India. Build your island with premium and cracked account support. Active 24/7.",
     imageURL: "",
     serverType: "Premium",
     tags: ["Skyblock"],
     featured: false,
     approved: "Yes",
+    players: 57,
+    votes: 145,
   },
   {
     name: "PvPLegends",
     ip: "pvp.legends.in",
     version: "1.8.9",
     gamemode: "PvP",
-    description: "Hardcore PvP for the best players.",
+    description:
+      "Hardcore PvP cracked Minecraft server. 1.8 PvP mechanics, kitmap, and ranked duels. TLauncher friendly.",
     imageURL: "",
     serverType: "Cracked",
     tags: ["PvP", "Hardcore"],
     featured: false,
     approved: "Yes",
+    players: 61,
+    votes: 230,
   },
   {
     name: "Indiacraft",
     ip: "play.indiacraft.gg",
     version: "1.20.4",
     gamemode: "Creative",
-    description: "Creative building server with plot worlds.",
+    description:
+      "Premium creative Minecraft server with plot worlds and building competitions. Active Indian community.",
     imageURL: "",
     serverType: "Premium",
     tags: ["Creative", "Building"],
     featured: false,
     approved: "Yes",
+    players: 38,
+    votes: 176,
   },
   {
     name: "HindiCraft",
     ip: "play.hindicraft.in",
     version: "1.20.2",
     gamemode: "Minigames",
-    description: "Fun minigames in Hindi!",
+    description:
+      "Fun Minecraft minigames server in Hindi! BedWars, Skywars, and more. Cracked account support.",
     imageURL: "",
     serverType: "Cracked",
     tags: ["Minigames", "Fun"],
     featured: false,
     approved: "Yes",
+    players: 44,
+    votes: 155,
+  },
+  {
+    name: "BedWarsPro",
+    ip: "play.bedwarspro.in",
+    version: "1.20.4",
+    gamemode: "BedWars",
+    description:
+      "India's #1 BedWars server. Compete in ranked BedWars matches with cracked and premium account support. TLauncher compatible.",
+    imageURL: "",
+    serverType: "Cracked",
+    tags: ["BedWars", "Minigames", "PvP"],
+    featured: true,
+    approved: "Yes",
+    players: 128,
+    votes: 445,
   },
 ];
 
@@ -189,6 +224,8 @@ export async function fetchServers(): Promise<ServerData[]> {
         featured: row[8]?.toLowerCase() === "yes",
         approved: row[9] ?? "",
         submittedBy: row[10] ?? "",
+        players: 0,
+        votes: 0,
       }));
     // Featured servers first
     return servers.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
@@ -278,6 +315,8 @@ export async function fetchServersFromAPI(): Promise<ServerData[]> {
       .map((row) => {
         const tagsRaw = getField(row, "Tags");
         const ip = getField(row, "Server IP", "ServerIP", "IP");
+        const playersRaw = getField(row, "Players Online", "Players", "Online");
+        const votesRaw = getField(row, "Votes", "Vote Count", "VoteCount");
         return {
           name: getField(row, "Server Name", "ServerName", "Name"),
           ip,
@@ -304,6 +343,8 @@ export async function fetchServersFromAPI(): Promise<ServerData[]> {
             "submittedBy",
             "SubmittedBy",
           ),
+          players: playersRaw ? Number.parseInt(playersRaw, 10) || 0 : 0,
+          votes: votesRaw ? Number.parseInt(votesRaw, 10) || 0 : 0,
         };
       });
 
