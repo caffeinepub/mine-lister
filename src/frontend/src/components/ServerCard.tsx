@@ -5,6 +5,7 @@ import type { ServerData } from "../utils/sheetsParser";
 interface ServerCardProps {
   server: ServerData;
   index: number;
+  rating?: number;
   onServerClick?: (server: ServerData) => void;
   onTagClick?: (tag: string) => void;
 }
@@ -31,9 +32,30 @@ const PLACEHOLDER_GRADIENTS = [
   "linear-gradient(135deg, oklch(0.18 0.07 320), oklch(0.18 0.07 255))",
 ];
 
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5 mt-1 mb-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          className="font-vt323"
+          style={{
+            fontSize: "14px",
+            color:
+              star <= rating ? "oklch(0.82 0.15 80)" : "oklch(0.35 0.04 255)",
+          }}
+        >
+          {star <= rating ? "★" : "☆"}
+        </span>
+      ))}
+    </div>
+  );
+}
+
 export default function ServerCard({
   server,
   index,
+  rating = 0,
   onServerClick,
   onTagClick,
 }: ServerCardProps) {
@@ -164,6 +186,7 @@ export default function ServerCard({
           >
             {server.serverType === "Premium" ? "⚡ PREMIUM" : "🔓 CRACKED"}
           </span>
+          {rating > 0 && <StarRating rating={rating} />}
         </div>
 
         {/* Server name */}

@@ -17,6 +17,7 @@ interface ServerListingProps {
   error: string | null;
   onRetry: () => void;
   onServerClick?: (server: ServerData) => void;
+  ratings?: Record<string, number>;
 }
 
 const SKELETON_KEYS = ["sk-1", "sk-2", "sk-3", "sk-4", "sk-5", "sk-6"];
@@ -53,6 +54,7 @@ export default function ServerListing({
   error,
   onRetry,
   onServerClick,
+  ratings = {},
 }: ServerListingProps) {
   const [search, setSearch] = useState("");
   const [filterVersion, setFilterVersion] = useState("all");
@@ -406,6 +408,7 @@ export default function ServerListing({
                     key={`${server.ip}-${i}`}
                     server={server}
                     index={i}
+                    rating={ratings[server.name] ?? 0}
                     onServerClick={onServerClick}
                     onTagClick={handleTagClick}
                   />

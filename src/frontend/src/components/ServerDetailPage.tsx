@@ -1,10 +1,16 @@
 import { ArrowLeft, Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
+import {
+  type Comment,
+  addComment,
+  getApprovedComments,
+} from "../utils/adminStore";
 import type { ServerData } from "../utils/sheetsParser";
 
 interface ServerDetailPageProps {
   server: ServerData;
   onBack: () => void;
+  rating?: number;
 }
 
 const TAG_COLORS: Record<string, string> = {
@@ -21,11 +27,43 @@ const TAG_COLORS: Record<string, string> = {
   Fun: "oklch(0.75 0.2 290)",
 };
 
+function StarRating({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-1">
+      {[1, 2, 3, 4, 5].map((star) => (
+        <span
+          key={star}
+          className="font-vt323"
+          style={{
+            fontSize: "20px",
+            color:
+              star <= rating ? "oklch(0.82 0.15 80)" : "oklch(0.35 0.04 255)",
+          }}
+        >
+          {star <= rating ? "★" : "☆"}
+        </span>
+      ))}
+      <span
+        className="font-vt323 ml-1"
+        style={{ fontSize: "14px", color: "oklch(0.55 0.08 255)" }}
+      >
+        {rating}/5
+      </span>
+    </div>
+  );
+}
+
 export default function ServerDetailPage({
   server,
   onBack,
+  rating = 0,
 }: ServerDetailPageProps) {
   const [copied, setCopied] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentName, setCommentName] = useState("");
+  const [commentMessage, setCommentMessage] = useState("");
+  const [commentSubmitted, setCommentSubmitted] = useState(false);
+  const [commentError, setCommentError] = useState("");
 
   const ipValue = server.ip?.trim() ?? "";
   const hasIP = ipValue.length > 0;
@@ -46,12 +84,15 @@ export default function ServerDetailPage({
       offers: { "@type": "Offer", price: "0" },
     });
     document.head.appendChild(script);
-
     return () => {
       const existing = document.getElementById("server-detail-schema");
       if (existing) existing.remove();
     };
   }, [server]);
+
+  useEffect(() => {
+    setComments(getApprovedComments(server.name));
+  }, [server.name]);
 
   const handleCopy = async () => {
     if (!hasIP) return;
@@ -76,6 +117,24 @@ export default function ServerDetailPage({
         .getElementById("server-listing")
         ?.scrollIntoView({ behavior: "smooth" });
     }, 100);
+  };
+
+  const handleCommentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setCommentError("");
+    if (!commentName.trim()) {
+      setCommentError("Please enter your name.");
+      return;
+    }
+    if (!commentMessage.trim()) {
+      setCommentError("Please enter a message.");
+      return;
+    }
+    addComment(server.name, commentName, commentMessage);
+    setCommentName("");
+    setCommentMessage("");
+    setCommentSubmitted(true);
+    setTimeout(() => setCommentSubmitted(false), 4000);
   };
 
   return (
@@ -163,11 +222,18 @@ export default function ServerDetailPage({
 
         {/* Server name H1 */}
         <h1
-          className="font-pixel neon-cyan mb-6 leading-relaxed"
+          className="font-pixel neon-cyan mb-2 leading-relaxed"
           style={{ fontSize: "clamp(14px, 3vw, 22px)" }}
         >
           {server.name}
         </h1>
+
+        {/* Rating */}
+        {rating > 0 && (
+          <div className="mb-4">
+            <StarRating rating={rating} />
+          </div>
+        )}
 
         {/* Description */}
         {server.description && (
@@ -329,7 +395,7 @@ export default function ServerDetailPage({
         </div>
 
         {/* Category link */}
-        <div className="text-center">
+        <div className="text-center mb-12">
           <button
             type="button"
             onClick={handleCategoryBack}
@@ -340,6 +406,132 @@ export default function ServerDetailPage({
             Browse all {server.gamemode} servers →
           </button>
         </div>
+
+        {/* ─── Comment Section ─── */}
+        <section className="mb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <h2
+              className="font-pixel neon-cyan"
+              style={{ fontSize: "10px", letterSpacing: "2px" }}
+            >
+              PLAYER COMMENTS
+            </h2>
+            <div
+              className="flex-1 h-px"
+              style={{ background: "oklch(0.85 0.15 200 / 0.2)" }}
+            />
+          </div>
+
+          {/* Submit comment form */}
+          <form
+            onSubmit={handleCommentSubmit}
+            className="rounded-lg p-5 mb-6 border border-border"
+            style={{ background: "oklch(0.12 0.025 255)" }}
+            data-ocid="comment.panel"
+          >
+            <p
+              className="font-pixel mb-4"
+              style={{ fontSize: "8px", color: "oklch(0.65 0.1 255)" }}
+            >
+              LEAVE A COMMENT
+            </p>
+            <div className="flex flex-col gap-3">
+              <input
+                type="text"
+                placeholder="Your name"
+                value={commentName}
+                onChange={(e) => setCommentName(e.target.value)}
+                className="font-vt323 w-full rounded px-3 py-2 border border-border bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                style={{ fontSize: "16px" }}
+                maxLength={60}
+                data-ocid="comment.input"
+              />
+              <textarea
+                placeholder="Write your comment..."
+                value={commentMessage}
+                onChange={(e) => setCommentMessage(e.target.value)}
+                rows={3}
+                className="font-vt323 w-full rounded px-3 py-2 border border-border bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary resize-none"
+                style={{ fontSize: "16px" }}
+                maxLength={500}
+                data-ocid="comment.textarea"
+              />
+              {commentError && (
+                <p
+                  className="font-vt323"
+                  style={{ fontSize: "14px", color: "oklch(0.65 0.22 20)" }}
+                  data-ocid="comment.error_state"
+                >
+                  {commentError}
+                </p>
+              )}
+              {commentSubmitted && (
+                <p
+                  className="font-vt323"
+                  style={{ fontSize: "15px", color: "oklch(0.78 0.2 160)" }}
+                  data-ocid="comment.success_state"
+                >
+                  ✓ Comment submitted for review!
+                </p>
+              )}
+              <button
+                type="submit"
+                className="font-pixel self-start border-2 border-primary px-5 py-2 text-primary transition-all duration-200 hover:bg-primary hover:text-primary-foreground active:scale-95"
+                style={{ fontSize: "8px" }}
+                data-ocid="comment.submit_button"
+              >
+                SUBMIT
+              </button>
+            </div>
+          </form>
+
+          {/* Approved comments list */}
+          {comments.length === 0 ? (
+            <p
+              className="font-vt323 text-center text-muted-foreground"
+              style={{ fontSize: "18px" }}
+              data-ocid="comment.empty_state"
+            >
+              No comments yet.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-4">
+              {comments.map((c, i) => (
+                <div
+                  key={c.id}
+                  className="rounded-lg px-5 py-3 border border-border"
+                  style={{ background: "oklch(0.11 0.02 255)" }}
+                  data-ocid={`comment.item.${i + 1}`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span
+                      className="font-pixel neon-cyan"
+                      style={{ fontSize: "8px" }}
+                    >
+                      {c.authorName}
+                    </span>
+                    <span
+                      className="font-vt323"
+                      style={{ fontSize: "12px", color: "oklch(0.4 0.05 255)" }}
+                    >
+                      {new Date(c.createdAt).toLocaleDateString("en-IN", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </span>
+                  </div>
+                  <p
+                    className="font-vt323 text-muted-foreground"
+                    style={{ fontSize: "16px", lineHeight: "1.4" }}
+                  >
+                    {c.message}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </article>
   );

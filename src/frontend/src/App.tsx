@@ -1,5 +1,7 @@
 import { Toaster } from "@/components/ui/sonner";
 import { useCallback, useEffect, useState } from "react";
+import AdminDashboard from "./components/AdminDashboard";
+import AnnouncementsSection from "./components/AnnouncementsSection";
 import AuthModal from "./components/AuthModal";
 import Footer from "./components/Footer";
 import HeroSection from "./components/HeroSection";
@@ -11,11 +13,10 @@ import ServerListing from "./components/ServerListing";
 import UserSubmission from "./components/UserSubmission";
 import { useAuth } from "./hooks/useAuth";
 import {
-  type ServerStats,
-  computeStats,
-  loadStats,
-  saveStats,
-} from "./utils/serverStats";
+  getCustomServers,
+  getHiddenServers,
+  getRatings,
+} from "./utils/adminStore";
 import type { ServerData } from "./utils/sheetsParser";
 import { fetchServersFromAPI } from "./utils/sheetsParser";
 
@@ -33,10 +34,22 @@ function setPageMeta(title: string, description?: string) {
   if (metaDesc && description) metaDesc.setAttribute("content", description);
 }
 
+// Detect admin route
+const isAdminRoute = window.location.pathname === "/admin-dashboard";
+
 export default function App() {
+  // If admin route, render admin only
+  if (isAdminRoute) {
+    return <AdminDashboard />;
+  }
+
+  return <MainApp />;
+}
+
+function MainApp() {
   const { currentUser, login, signup, logout } = useAuth();
   const [servers, setServers] = useState<ServerData[]>([]);
-  const [stats, setStats] = useState<ServerStats>(() => loadStats());
+  const [ratings, setRatings] = useState<Record<string, number>>(getRatings());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [submitOpen, setSubmitOpen] = useState(false);
@@ -64,11 +77,20 @@ export default function App() {
     setLoading(true);
     setError(null);
     try {
-      const serversData = await fetchServersFromAPI();
-      setServers(serversData);
-      const computed = computeStats(serversData);
-      setStats(computed);
-      saveStats(computed);
+      const apiServers = await fetchServersFromAPI();
+      const customServers = getCustomServers();
+      const hiddenServers = getHiddenServers();
+
+      // Merge: custom servers first, then API servers, filter hidden
+      const merged = [
+        ...customServers,
+        ...apiServers.filter(
+          (s) => !customServers.some((c) => c.name === s.name),
+        ),
+      ].filter((s) => !hiddenServers.includes(s.name));
+
+      setServers(merged);
+      setRatings(getRatings());
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load data");
     } finally {
@@ -169,18 +191,24 @@ export default function App() {
       <main>
         {page === "home" && !selectedServer ? (
           <>
-            <HeroSection serverCount={servers.length} stats={stats} />
+            <HeroSection serverCount={servers.length} />
+            <AnnouncementsSection />
             <ServerListing
               servers={servers}
               loading={loading}
               error={error}
               onRetry={loadData}
               onServerClick={handleServerClick}
+              ratings={ratings}
             />
             <SEOContent onCategoryClick={handleSEOCategoryClick} />
           </>
         ) : page === "home" && selectedServer ? (
-          <ServerDetailPage server={selectedServer} onBack={handleBackToHome} />
+          <ServerDetailPage
+            server={selectedServer}
+            onBack={handleBackToHome}
+            rating={ratings[selectedServer.name] ?? 0}
+          />
         ) : (
           currentUser && (
             <MyServers

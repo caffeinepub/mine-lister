@@ -1,35 +1,48 @@
-# MINE Lister
+# MINE Lister – Admin Control & Moderation Enhancement
 
 ## Current State
-Fully functional Minecraft server listing site with dark neon theme, horizontal server cards, tags, search/filter, authentication, GA4, and prior SEO work targeting India.
+- Homepage hero shows 3 overview stats: Total Servers, Players Online, Total Votes
+- Server cards are horizontal with logo, IP copy, vote/join buttons, tags
+- ServerDetailPage shows full server info with no comments or ratings
+- AdminPanel.tsx is a collapsible section on the homepage (accessible via #admin-panel fragment) that links to Google Sheets — no in-app admin functionality
+- No comment system, no rating system, no announcements
+- Authentication is user-facing only (localStorage-based username/password)
+- App routing is page-based (state: "home" | "my-servers"), no URL routing
 
 ## Requested Changes (Diff)
 
 ### Add
-- Vote button and Join Server button on each server card
-- Player counts and votes displayed on cards (never 0, use defaults from sample data)
-- H2 sections in ServerListing: "Top Minecraft Servers", "Cracked Minecraft Servers", "Premium Minecraft Servers", "Recently Added Servers"
-- Introductory paragraph: "This website lists the best Minecraft servers including cracked and premium servers. Players can join servers for BedWars, Survival, Skyblock, PvP and more."
-- Structured data (JSON-LD ItemList schema) for server listings in index.html
-- Schema for individual server listing items
+- **Announcements section** on homepage (below hero, above server listing). Fetches announcements from localStorage. Shows latest first. Only admin can create/edit/delete.
+- **Star rating** (1–5) field per server — stored in localStorage as `minelister_ratings: { [serverName]: number }`. Displayed on server cards and detail page as filled stars.
+- **Comment system** on ServerDetailPage: form with Name + Message fields; submitted comments go to pending state in localStorage `minelister_comments: Comment[]`.
+- **New hidden admin dashboard** at route `/admin-dashboard` — full-page route added to App.tsx routing. Not linked from any navigation.
+- **Admin login** on the `/admin-dashboard` page: hardcoded credentials `admin` / `minelister2024`. Stored in `minelister_admin_session` in sessionStorage.
+- **Admin panel features**: tabs for Servers, Comments, Announcements, Spam. Each tab:
+  - Servers: list all servers (from API + localStorage overrides), add new server, edit/delete, update rating, toggle visibility (hidden servers excluded from public listing)
+  - Comments: list pending comments, approve or delete each
+  - Announcements: create/edit/delete announcements
+  - Spam: list all comments (approved + pending), delete any
+- **Server visibility** toggle stored in localStorage `minelister_hidden_servers: string[]` (array of server names). Public listing filters these out.
+- **Server overrides** for admin-added servers stored in localStorage `minelister_custom_servers: ServerData[]`. These are merged with API servers in the listing.
+- **Rating overrides** for admin-set ratings stored in localStorage `minelister_ratings`.
 
 ### Modify
-- index.html title: "Best Minecraft Servers (Cracked & Premium) | MCServerHub"
-- index.html meta description: "Find the best cracked and premium Minecraft servers. Play BedWars, Survival, Skyblock and more. Join top TLauncher servers with active players."
-- index.html keywords: add cracked minecraft servers, premium minecraft servers, tlauncher servers, minecraft server list, best mc servers
-- HeroSection H1: "Best Minecraft Servers (Cracked & Premium)"
-- Sample server data: add keyword-rich descriptions, ensure players/votes never 0 (use realistic defaults: min 20 players, min 50 votes)
-- ServerCard: show players online and vote count, add Vote + Join Server buttons
-- ServerListing: organize with named H2 sections (Top, Cracked, Premium, Recently Added)
-- App.tsx page title on home: match new title
+- **HeroSection**: Remove the "Players Online" and "Total Votes" stat panels. Keep only "Total Servers" stat. Remove unused stats props (totalPlayers, totalVotes) from the component.
+- **App.tsx**: Add `/admin-dashboard` route detection (check `window.location.pathname`). Render `AdminDashboard` component when on that path. Also filter hidden servers from public listing. Pass custom servers into merged server list. Pass ratings into ServerCard and ServerDetailPage.
+- **ServerCard**: Add star rating display (read from ratings store) below the badges row.
+- **ServerDetailPage**: Add star rating display and comment section (form + approved comments list).
+- **ServerListing**: Filter out hidden servers before rendering.
+- **serverStats.ts**: Remove totalPlayers and totalVotes from ServerStats type (or keep but just don't display them).
 
 ### Remove
-- Nothing removed
+- Old `AdminPanel.tsx` component — replace with new full `AdminDashboard.tsx`. Remove AdminPanel import/usage from App.tsx (it was accessed via #admin-panel hash, not rendered directly in current App.tsx — confirm it's not rendered and leave the file or delete it).
 
 ## Implementation Plan
-1. Update index.html: title, meta description, keywords, add ItemList JSON-LD schema
-2. Update HeroSection H1 text
-3. Update SAMPLE_SERVERS in sheetsParser.ts with keyword-rich descriptions and non-zero players/votes
-4. Update ServerCard to show players count, vote count, Vote button, Join Server button
-5. Update ServerListing to add H2 section headings and intro paragraph
-6. Update App.tsx home page title to match new SEO title
+1. Create `src/frontend/src/utils/adminStore.ts` — localStorage helpers for: ratings, comments, announcements, hidden servers, custom servers.
+2. Modify `HeroSection.tsx` — remove Players Online and Total Votes panels, keep only Total Servers.
+3. Modify `serverStats.ts` — simplify or keep type but remove unused fields.
+4. Create `src/frontend/src/components/AnnouncementsSection.tsx` — displays announcements from store.
+5. Modify `ServerCard.tsx` — add star rating display prop.
+6. Modify `ServerDetailPage.tsx` — add rating display + comment section (submit form + approved comment list).
+7. Create `src/frontend/src/components/AdminDashboard.tsx` — full admin panel with login gate + 4 tabs.
+8. Modify `App.tsx` — detect `/admin-dashboard` path and render AdminDashboard, merge custom servers, filter hidden servers, pass ratings, add AnnouncementsSection to homepage.
