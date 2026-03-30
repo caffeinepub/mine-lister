@@ -27,7 +27,7 @@ import {
   fetchServersFromAPI,
 } from "../utils/sheetsParser";
 
-type Tab = "servers" | "comments" | "announcements" | "spam";
+type Tab = "servers" | "comments" | "announcements" | "spam" | "sitemap";
 type CommentFilter = "all" | "pending" | "approved";
 
 // ─── Login Gate ──────────────────────────────────────────────
@@ -985,6 +985,266 @@ function AnnouncementsTab() {
   );
 }
 
+// ─── Sitemap Tab ─────────────────────────────────────────────
+
+const BASE_DOMAIN = "https://minelister.in";
+const CATEGORY_ANCHORS = [
+  "survival",
+  "pvp",
+  "skyblock",
+  "factions",
+  "smp",
+  "minigames",
+  "bedwars",
+];
+
+function generateSitemapXML(servers: ServerData[]): string {
+  const today = new Date().toISOString().split("T")[0];
+
+  const serverUrls = servers
+    .map((s) => {
+      const slug = s.name
+        .toLowerCase()
+        .replace(/\s+/g, "-")
+        .replace(/[^a-z0-9-]/g, "");
+      return `  <url>
+    <loc>${BASE_DOMAIN}/server/${slug}</loc>
+    <lastmod>${today}</lastmod>
+    <priority>0.8</priority>
+  </url>`;
+    })
+    .join("\n");
+
+  const categoryUrls = CATEGORY_ANCHORS.map(
+    (anchor) =>
+      `  <url>
+    <loc>${BASE_DOMAIN}/#${anchor}</loc>
+    <lastmod>${today}</lastmod>
+    <priority>0.6</priority>
+  </url>`,
+  ).join("\n");
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>${BASE_DOMAIN}/</loc>
+    <lastmod>${today}</lastmod>
+    <priority>1.0</priority>
+  </url>
+${serverUrls}
+${categoryUrls}
+</urlset>`;
+}
+
+function SitemapTab({ apiServers }: { apiServers: ServerData[] }) {
+  const [xml, setXml] = useState("");
+  const [urlCount, setUrlCount] = useState(0);
+  const [copied, setCopied] = useState(false);
+
+  const handleGenerate = () => {
+    const generated = generateSitemapXML(apiServers);
+    setXml(generated);
+    // Count <url> occurrences
+    const count = (generated.match(/<url>/g) ?? []).length;
+    setUrlCount(count);
+    setCopied(false);
+  };
+
+  const handleCopy = async () => {
+    if (!xml) return;
+    try {
+      await navigator.clipboard.writeText(xml);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback: select textarea content
+    }
+  };
+
+  const handleDownload = () => {
+    if (!xml) return;
+    const blob = new Blob([xml], { type: "application/xml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sitemap.xml";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <p className="font-pixel neon-cyan" style={{ fontSize: "9px" }}>
+            SITEMAP GENERATOR
+          </p>
+          <p
+            className="font-vt323 text-muted-foreground mt-1"
+            style={{ fontSize: "14px" }}
+          >
+            Generate a valid XML sitemap for{" "}
+            <span style={{ color: "oklch(0.85 0.15 200)" }}>{BASE_DOMAIN}</span>
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleGenerate}
+          className="font-pixel border-2 border-primary px-4 py-2 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95"
+          style={{ fontSize: "8px" }}
+          data-ocid="sitemap.primary_button"
+        >
+          ⟳ GENERATE SITEMAP XML
+        </button>
+      </div>
+
+      {xml && (
+        <>
+          <div className="flex items-center justify-between mb-3">
+            <p
+              className="font-vt323"
+              style={{ fontSize: "15px", color: "oklch(0.78 0.2 160)" }}
+              data-ocid="sitemap.success_state"
+            >
+              ✓ Generated {urlCount} URL{urlCount !== 1 ? "s" : ""}
+            </p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="font-pixel border px-3 py-1.5 transition-all active:scale-95"
+                style={{
+                  fontSize: "7px",
+                  color: copied
+                    ? "oklch(0.78 0.2 160)"
+                    : "oklch(0.85 0.15 200)",
+                  borderColor: copied
+                    ? "oklch(0.78 0.2 160 / 0.5)"
+                    : "oklch(0.85 0.15 200 / 0.4)",
+                  background: copied
+                    ? "oklch(0.78 0.2 160 / 0.1)"
+                    : "transparent",
+                }}
+                data-ocid="sitemap.secondary_button"
+              >
+                {copied ? "✓ COPIED!" : "COPY TO CLIPBOARD"}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownload}
+                className="font-pixel border-2 border-primary px-3 py-1.5 text-primary hover:bg-primary hover:text-primary-foreground transition-all active:scale-95"
+                style={{ fontSize: "7px" }}
+                data-ocid="sitemap.download_button"
+              >
+                ↓ DOWNLOAD sitemap.xml
+              </button>
+            </div>
+          </div>
+
+          <div
+            className="rounded-lg border border-border overflow-hidden"
+            style={{ background: "oklch(0.08 0.015 255)" }}
+          >
+            <div
+              className="flex items-center justify-between px-4 py-2 border-b border-border"
+              style={{ background: "oklch(0.10 0.02 255)" }}
+            >
+              <p
+                className="font-pixel"
+                style={{ fontSize: "7px", color: "oklch(0.55 0.08 255)" }}
+              >
+                sitemap.xml — application/xml
+              </p>
+              <p
+                className="font-vt323"
+                style={{ fontSize: "13px", color: "oklch(0.4 0.05 255)" }}
+              >
+                {xml.length.toLocaleString()} chars
+              </p>
+            </div>
+            <textarea
+              readOnly
+              value={xml}
+              rows={20}
+              className="w-full bg-transparent text-foreground resize-none focus:outline-none px-4 py-3"
+              style={{
+                fontFamily: "'Courier New', Courier, monospace",
+                fontSize: "12px",
+                lineHeight: "1.6",
+                color: "oklch(0.75 0.08 200)",
+              }}
+              data-ocid="sitemap.textarea"
+            />
+          </div>
+
+          <div
+            className="mt-4 rounded-lg px-4 py-3 border"
+            style={{
+              background: "oklch(0.11 0.02 255)",
+              borderColor: "oklch(0.3 0.05 255 / 0.4)",
+            }}
+          >
+            <p
+              className="font-pixel mb-2"
+              style={{ fontSize: "7px", color: "oklch(0.55 0.08 255)" }}
+            >
+              NEXT STEPS
+            </p>
+            <ul
+              className="font-vt323 flex flex-col gap-1"
+              style={{ fontSize: "15px" }}
+            >
+              <li style={{ color: "oklch(0.72 0.1 255)" }}>
+                1. Download sitemap.xml and upload it to your domain root at{" "}
+                <span style={{ color: "oklch(0.85 0.15 200)" }}>
+                  {BASE_DOMAIN}/sitemap.xml
+                </span>
+              </li>
+              <li style={{ color: "oklch(0.72 0.1 255)" }}>
+                2. Ensure your robots.txt contains:{" "}
+                <span
+                  style={{
+                    fontFamily: "'Courier New', monospace",
+                    color: "oklch(0.78 0.2 160)",
+                  }}
+                >
+                  Sitemap: {BASE_DOMAIN}/sitemap.xml
+                </span>
+              </li>
+              <li style={{ color: "oklch(0.72 0.1 255)" }}>
+                3. Submit to Google Search Console to get indexed faster.
+              </li>
+            </ul>
+          </div>
+        </>
+      )}
+
+      {!xml && (
+        <div
+          className="rounded-lg border border-dashed border-border px-6 py-12 text-center"
+          style={{ background: "oklch(0.10 0.018 255)" }}
+          data-ocid="sitemap.empty_state"
+        >
+          <p
+            className="font-pixel mb-2"
+            style={{ fontSize: "9px", color: "oklch(0.4 0.05 255)" }}
+          >
+            NO SITEMAP GENERATED
+          </p>
+          <p
+            className="font-vt323 text-muted-foreground"
+            style={{ fontSize: "17px" }}
+          >
+            Click "Generate Sitemap XML" to create a valid XML sitemap with{" "}
+            {apiServers.length} server{apiServers.length !== 1 ? "s" : ""} +
+            homepage + {CATEGORY_ANCHORS.length} category URLs.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main Admin Dashboard ────────────────────────────────────
 
 export default function AdminDashboard() {
@@ -1019,6 +1279,7 @@ export default function AdminDashboard() {
     { id: "comments", label: "Comments" },
     { id: "announcements", label: "Announcements" },
     { id: "spam", label: "Spam" },
+    { id: "sitemap", label: "Sitemap" },
   ];
 
   return (
@@ -1091,6 +1352,7 @@ export default function AdminDashboard() {
           {tab === "comments" && <CommentsTab />}
           {tab === "announcements" && <AnnouncementsTab />}
           {tab === "spam" && <CommentsTab isSpam />}
+          {tab === "sitemap" && <SitemapTab apiServers={apiServers} />}
         </div>
       </main>
     </div>
