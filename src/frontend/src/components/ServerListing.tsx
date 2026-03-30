@@ -36,13 +36,13 @@ const CATEGORY_PILLS = [
 
 function SkeletonCard() {
   return (
-    <div className="rounded-lg overflow-hidden border border-border">
-      <div className="skeleton h-32" />
+    <div className="rounded-xl overflow-hidden border border-border">
+      <div className="skeleton" style={{ height: "120px" }} />
       <div className="p-4 space-y-3">
         <div className="skeleton h-4 w-3/4 rounded" />
         <div className="skeleton h-3 w-full rounded" />
         <div className="skeleton h-3 w-2/3 rounded" />
-        <div className="skeleton h-8 w-32 rounded mt-4" />
+        <div className="skeleton h-10 w-full rounded mt-4" />
       </div>
     </div>
   );
@@ -120,11 +120,17 @@ export default function ServerListing({
         {/* Section heading */}
         <h2
           id="top-servers"
-          className="font-pixel neon-gold text-center mb-6"
+          className="font-pixel neon-gold text-center mb-2"
           style={{ fontSize: "clamp(10px, 2vw, 16px)" }}
         >
-          Top Minecraft Servers
+          Top Rated Servers
         </h2>
+        <p
+          className="font-vt323 text-muted-foreground text-center mb-6"
+          style={{ fontSize: "18px" }}
+        >
+          Browse the highest-rated Minecraft servers loved by players worldwide
+        </p>
 
         {/* Category quick-link pills */}
         <div className="flex flex-wrap justify-center gap-2 mb-8">
@@ -498,7 +504,7 @@ export default function ServerListing({
                   className="font-pixel neon-cyan mb-3"
                   style={{ fontSize: "clamp(9px, 1.8vw, 14px)" }}
                 >
-                  Recently Added Servers
+                  New Servers
                 </h2>
                 <p
                   className="font-vt323 text-muted-foreground mb-3"
@@ -526,6 +532,44 @@ export default function ServerListing({
                 >
                   Browse All Servers →
                 </button>
+              </section>
+
+              <section id="popular-gamemodes" className="scroll-mt-20">
+                <h2
+                  className="font-pixel neon-cyan mb-3"
+                  style={{ fontSize: "clamp(9px, 1.8vw, 14px)" }}
+                >
+                  Popular Gamemodes
+                </h2>
+                <p
+                  className="font-vt323 text-muted-foreground mb-4"
+                  style={{ fontSize: "17px" }}
+                >
+                  Explore Minecraft servers by your favourite gamemode. From
+                  intense PvP battles to peaceful Survival worlds.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {CATEGORY_PILLS.map((pill) => (
+                    <button
+                      key={pill.id}
+                      type="button"
+                      onClick={() => {
+                        handleCategoryClick(pill.label);
+                        document
+                          .getElementById("top-servers")
+                          ?.scrollIntoView({ behavior: "smooth" });
+                      }}
+                      className="font-vt323 px-4 py-1.5 rounded-full border transition-all duration-200 hover:bg-primary/20"
+                      style={{
+                        fontSize: "16px",
+                        color: "oklch(0.75 0.12 255)",
+                        borderColor: "oklch(0.35 0.08 255 / 0.5)",
+                      }}
+                    >
+                      {pill.label}
+                    </button>
+                  ))}
+                </div>
               </section>
             </div>
           </>

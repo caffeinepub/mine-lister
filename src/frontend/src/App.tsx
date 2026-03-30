@@ -120,10 +120,11 @@ function MainApp() {
       pageDescription =
         "View and manage your Minecraft server listings on MINE Lister.";
     } else {
-      pageTitle = "Best Minecraft Servers (Cracked & Premium) | MCServerHub";
+      pageTitle =
+        "Best Minecraft Servers 2026 | Top Java & Bedrock Servers List";
       pagePath = "/";
       pageDescription =
-        "Discover the best Minecraft servers including Survival, Skyblock, Factions, and more. List your server for free on MINE Lister.";
+        "Discover the best Minecraft servers with unique gamemodes, active players, and exciting gameplay. Join top Minecraft servers now!";
     }
 
     setPageMeta(pageTitle, pageDescription);
@@ -191,7 +192,10 @@ function MainApp() {
       <main>
         {page === "home" && !selectedServer ? (
           <>
-            <HeroSection serverCount={servers.length} />
+            <HeroSection
+              serverCount={servers.length}
+              onSubmitClick={() => setSubmitOpen(true)}
+            />
             <AnnouncementsSection />
             <ServerListing
               servers={servers}

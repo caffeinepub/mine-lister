@@ -1,5 +1,4 @@
-import { Check, Copy, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import { ArrowRight } from "lucide-react";
 import type { ServerData } from "../utils/sheetsParser";
 
 interface ServerCardProps {
@@ -25,7 +24,15 @@ const TAG_COLORS: Record<string, string> = {
   BedWars: "oklch(0.72 0.22 200)",
 };
 
-const PLACEHOLDER_GRADIENTS = [
+const BANNER_GRADIENTS = [
+  "linear-gradient(135deg, oklch(0.18 0.08 255) 0%, oklch(0.22 0.12 285) 50%, oklch(0.15 0.06 200) 100%)",
+  "linear-gradient(135deg, oklch(0.15 0.09 285) 0%, oklch(0.20 0.10 320) 50%, oklch(0.18 0.07 255) 100%)",
+  "linear-gradient(135deg, oklch(0.18 0.07 200) 0%, oklch(0.15 0.09 255) 50%, oklch(0.20 0.08 285) 100%)",
+  "linear-gradient(135deg, oklch(0.16 0.08 320) 0%, oklch(0.18 0.10 255) 50%, oklch(0.22 0.09 200) 100%)",
+  "linear-gradient(135deg, oklch(0.20 0.10 160) 0%, oklch(0.16 0.07 255) 50%, oklch(0.18 0.08 285) 100%)",
+];
+
+const LOGO_GRADIENTS = [
   "linear-gradient(135deg, oklch(0.2 0.08 255), oklch(0.15 0.06 285))",
   "linear-gradient(135deg, oklch(0.15 0.06 285), oklch(0.2 0.08 200))",
   "linear-gradient(135deg, oklch(0.2 0.08 200), oklch(0.15 0.06 255))",
@@ -34,7 +41,7 @@ const PLACEHOLDER_GRADIENTS = [
 
 function StarRating({ rating }: { rating: number }) {
   return (
-    <div className="flex items-center gap-0.5 mt-1 mb-1">
+    <div className="flex items-center gap-0.5">
       {[1, 2, 3, 4, 5].map((star) => (
         <span
           key={star}
@@ -59,361 +66,266 @@ export default function ServerCard({
   onServerClick,
   onTagClick,
 }: ServerCardProps) {
-  const [copied, setCopied] = useState(false);
-  const [voted, setVoted] = useState(false);
-  const [joinCopied, setJoinCopied] = useState(false);
+  const bannerGradient = BANNER_GRADIENTS[index % BANNER_GRADIENTS.length];
+  const logoGradient = LOGO_GRADIENTS[index % LOGO_GRADIENTS.length];
 
-  const ipValue = server.ip?.trim() ?? "";
-  const hasIP = ipValue.length > 0;
-
-  // Ensure players/votes are never 0 — use index-based defaults
-  const displayPlayers =
-    !server.players || server.players === 0 ? 20 + index : server.players;
-  const displayVotes =
-    !server.votes || server.votes === 0 ? 50 + index * 7 : server.votes;
-
-  const handleCopy = async () => {
-    if (!hasIP) return;
-    try {
-      await navigator.clipboard.writeText(ipValue);
-    } catch {
-      const el = document.createElement("textarea");
-      el.value = ipValue;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
-
-  const handleJoin = async () => {
-    if (!hasIP) return;
-    try {
-      await navigator.clipboard.writeText(ipValue);
-    } catch {
-      const el = document.createElement("textarea");
-      el.value = ipValue;
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-    }
-    setJoinCopied(true);
-    setTimeout(() => setJoinCopied(false), 2000);
-  };
-
-  const handleVote = () => {
-    setVoted(true);
-    setTimeout(() => setVoted(false), 2000);
-  };
-
-  const placeholderBg =
-    PLACEHOLDER_GRADIENTS[index % PLACEHOLDER_GRADIENTS.length];
+  const isNew = index < 2;
+  const isTrending = index >= 2 && index <= 4;
 
   return (
     <article
-      className={`server-card rounded-lg overflow-hidden flex flex-row ${
+      className={`server-card group rounded-xl overflow-hidden flex flex-col transition-all duration-200 hover:scale-[1.02] ${
         server.featured ? "featured-border" : "border border-border"
       }`}
-      style={{ background: "oklch(0.12 0.025 255)" }}
+      style={{
+        background: "oklch(0.12 0.025 255)",
+        boxShadow: "0 2px 12px oklch(0 0 0 / 0.4)",
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.boxShadow = server.featured
+          ? "0 0 20px oklch(0.85 0.15 200 / 0.3), 0 4px 24px oklch(0 0 0 / 0.5)"
+          : "0 0 16px oklch(0.55 0.18 255 / 0.25), 0 4px 24px oklch(0 0 0 / 0.5)";
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.boxShadow =
+          "0 2px 12px oklch(0 0 0 / 0.4)";
+      }}
       data-ocid={`server.item.${index + 1}`}
     >
-      {/* Logo square */}
-      <div className="flex-shrink-0 p-3 flex items-start pt-4">
-        <div
-          className="rounded-lg overflow-hidden flex items-center justify-center"
-          style={{ width: "76px", height: "76px", minWidth: "76px" }}
-        >
-          {server.imageURL ? (
-            <img
-              src={server.imageURL}
-              alt={`${server.name} logo`}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
-          ) : (
+      {/* Banner image */}
+      <div
+        className="relative w-full overflow-hidden flex-shrink-0"
+        style={{ height: "120px" }}
+      >
+        {server.imageURL ? (
+          <img
+            src={server.imageURL}
+            alt={`${server.name} banner`}
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        ) : (
+          <div
+            className="w-full h-full"
+            style={{ background: bannerGradient }}
+            aria-hidden="true"
+          >
+            {/* Subtle noise texture overlay */}
             <div
-              className="w-full h-full flex items-center justify-center"
-              style={{ background: placeholderBg }}
-              aria-label={`${server.name} server placeholder`}
-            >
-              <span
-                className="font-pixel text-foreground/40"
-                style={{ fontSize: "9px" }}
-              >
-                {server.name.slice(0, 3).toUpperCase()}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
+              className="w-full h-full opacity-20"
+              style={{
+                backgroundImage:
+                  "url(\"data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+              }}
+            />
+          </div>
+        )}
 
-      {/* Card content */}
-      <div className="flex-1 min-w-0 p-3 pl-1 flex flex-col">
-        {/* Badges row */}
-        <div className="flex flex-wrap gap-1.5 mb-2">
-          {server.featured && (
+        {/* Badges overlaid on banner */}
+        <div className="absolute top-2 left-2 flex flex-wrap gap-1.5">
+          {isNew && (
             <span
-              className="font-pixel neon-gold px-2 py-0.5 border rounded"
+              className="font-pixel px-2 py-0.5 rounded text-white"
               style={{
                 fontSize: "7px",
-                borderColor: "oklch(0.82 0.15 80 / 0.5)",
-                background: "oklch(0.82 0.15 80 / 0.1)",
+                background:
+                  "linear-gradient(90deg, oklch(0.55 0.22 160), oklch(0.5 0.2 140))",
+                boxShadow: "0 0 8px oklch(0.5 0.2 160 / 0.5)",
+              }}
+            >
+              ✦ NEW
+            </span>
+          )}
+          {isTrending && (
+            <span
+              className="font-pixel px-2 py-0.5 rounded text-white"
+              style={{
+                fontSize: "7px",
+                background:
+                  "linear-gradient(90deg, oklch(0.62 0.22 50), oklch(0.58 0.2 30))",
+                boxShadow: "0 0 8px oklch(0.6 0.2 50 / 0.5)",
+              }}
+            >
+              🔥 TRENDING
+            </span>
+          )}
+          {server.featured && (
+            <span
+              className="font-pixel px-2 py-0.5 rounded"
+              style={{
+                fontSize: "7px",
+                color: "oklch(0.82 0.15 80)",
+                background: "oklch(0.82 0.15 80 / 0.15)",
+                border: "1px solid oklch(0.82 0.15 80 / 0.5)",
+                backdropFilter: "blur(4px)",
               }}
             >
               ★ FEATURED
             </span>
           )}
+        </div>
+
+        {/* Server type badge top-right */}
+        <div className="absolute top-2 right-2">
           <span
             className="font-vt323 px-2 py-0 rounded border"
             style={{
               fontSize: "13px",
+              backdropFilter: "blur(4px)",
               color:
                 server.serverType === "Premium"
                   ? "oklch(0.85 0.15 200)"
                   : "oklch(0.7 0.22 285)",
               borderColor:
                 server.serverType === "Premium"
-                  ? "oklch(0.85 0.15 200 / 0.4)"
-                  : "oklch(0.55 0.22 285 / 0.4)",
+                  ? "oklch(0.85 0.15 200 / 0.5)"
+                  : "oklch(0.55 0.22 285 / 0.5)",
               background:
                 server.serverType === "Premium"
-                  ? "oklch(0.85 0.15 200 / 0.1)"
-                  : "oklch(0.55 0.22 285 / 0.1)",
+                  ? "oklch(0.85 0.15 200 / 0.15)"
+                  : "oklch(0.55 0.22 285 / 0.15)",
             }}
           >
             {server.serverType === "Premium" ? "⚡ PREMIUM" : "🔓 CRACKED"}
           </span>
-          {rating > 0 && <StarRating rating={rating} />}
-        </div>
-
-        {/* Server name */}
-        <h3
-          className={`font-pixel mb-1 leading-relaxed ${
-            server.featured ? "neon-cyan" : "text-foreground"
-          }`}
-          style={{ fontSize: "9px" }}
-        >
-          {server.name}
-        </h3>
-
-        {/* Description */}
-        <p
-          className="font-vt323 text-muted-foreground mb-2 line-clamp-2"
-          style={{ fontSize: "15px", lineHeight: "1.3" }}
-        >
-          {server.description}
-        </p>
-
-        {/* Tags */}
-        {server.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {server.tags.map((tag) =>
-              onTagClick ? (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => onTagClick(tag)}
-                  className="font-vt323 px-2 py-0 rounded-full cursor-pointer transition-all duration-150 hover:brightness-125 hover:scale-105"
-                  style={{
-                    fontSize: "12px",
-                    color: TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)",
-                    background: "oklch(0.16 0.02 255)",
-                    border: `1px solid ${TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)"}/30`,
-                  }}
-                >
-                  #{tag}
-                </button>
-              ) : (
-                <span
-                  key={tag}
-                  className="font-vt323 px-2 py-0 rounded-full"
-                  style={{
-                    fontSize: "12px",
-                    color: TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)",
-                    background: "oklch(0.16 0.02 255)",
-                    border: `1px solid ${TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)"}/30`,
-                  }}
-                >
-                  {tag}
-                </span>
-              ),
-            )}
-          </div>
-        )}
-
-        {/* Player count and votes */}
-        <div className="flex items-center gap-3 mb-2">
-          <span
-            className="font-vt323"
-            style={{ fontSize: "14px", color: "oklch(0.78 0.2 160)" }}
-          >
-            👥 {displayPlayers} online
-          </span>
-          <span
-            className="font-vt323"
-            style={{ fontSize: "14px", color: "oklch(0.82 0.15 80)" }}
-          >
-            ⭐ {displayVotes} votes
-          </span>
-        </div>
-
-        {/* Server IP Section */}
-        <div
-          className="rounded-md px-3 py-1.5 mb-2"
-          style={{
-            background: "oklch(0.10 0.03 255)",
-            border: "1px solid oklch(0.35 0.1 255 / 0.4)",
-          }}
-        >
-          <p
-            className="font-pixel mb-0.5"
-            style={{ fontSize: "7px", color: "oklch(0.55 0.08 255)" }}
-          >
-            SERVER IP
-          </p>
-          <div className="flex items-center justify-between gap-2">
-            <div className="flex-1 min-w-0">
-              {hasIP ? (
-                <>
-                  <span
-                    className="font-vt323 font-bold block truncate"
-                    style={{ fontSize: "16px", color: "oklch(0.88 0.12 215)" }}
-                  >
-                    {ipValue}
-                  </span>
-                  <span
-                    className="font-vt323"
-                    style={{ fontSize: "11px", color: "oklch(0.5 0.06 255)" }}
-                  >
-                    Click to copy
-                  </span>
-                </>
-              ) : (
-                <span
-                  className="font-vt323"
-                  style={{ fontSize: "15px", color: "oklch(0.45 0.04 255)" }}
-                >
-                  IP not available
-                </span>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={handleCopy}
-              disabled={!hasIP}
-              className="flex items-center gap-1 px-2 py-1 rounded transition-all duration-200 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                color: copied ? "oklch(0.78 0.2 160)" : "oklch(0.78 0.18 215)",
-                border: `1px solid ${
-                  copied
-                    ? "oklch(0.6 0.2 160 / 0.5)"
-                    : "oklch(0.5 0.15 215 / 0.5)"
-                }`,
-                background: copied
-                  ? "oklch(0.6 0.2 160 / 0.08)"
-                  : "oklch(0.5 0.15 215 / 0.08)",
-              }}
-              title={hasIP ? `Copy IP: ${ipValue}` : "No IP available"}
-              data-ocid={`server.button.${index + 1}`}
-              onMouseEnter={(e) => {
-                if (!hasIP) return;
-                (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                  "0 0 8px oklch(0.7 0.2 215 / 0.6), 0 0 16px oklch(0.6 0.18 215 / 0.3)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-              }}
-            >
-              {copied ? (
-                <>
-                  <Check className="h-3 w-3" />
-                  <span className="font-vt323" style={{ fontSize: "13px" }}>
-                    Copied ✓
-                  </span>
-                </>
-              ) : (
-                <Copy className="h-3 w-3" />
-              )}
-            </button>
-          </div>
-        </div>
-
-        {/* Footer row: version + gamemode + action buttons */}
-        <div className="flex items-center justify-between mt-auto flex-wrap gap-1.5">
-          <span
-            className="font-vt323 text-muted-foreground truncate mr-2"
-            style={{ fontSize: "14px" }}
-          >
-            {server.version} · {server.gamemode}
-          </span>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            {/* Vote button */}
-            <button
-              type="button"
-              onClick={handleVote}
-              className="font-vt323 flex items-center gap-1 px-2.5 py-0.5 rounded border transition-all duration-200"
-              style={{
-                fontSize: "13px",
-                color: voted ? "oklch(0.18 0.025 80)" : "oklch(0.82 0.15 80)",
-                borderColor: voted
-                  ? "oklch(0.82 0.15 80)"
-                  : "oklch(0.55 0.15 80 / 0.5)",
-                background: voted
-                  ? "oklch(0.82 0.15 80)"
-                  : "oklch(0.82 0.15 80 / 0.1)",
-              }}
-              data-ocid={`server.toggle.${index + 1}`}
-            >
-              {voted ? "✓ Voted" : "⭐ Vote"}
-            </button>
-
-            {/* Join Server button */}
-            <button
-              type="button"
-              onClick={handleJoin}
-              disabled={!hasIP}
-              className="font-vt323 flex items-center gap-1 px-2.5 py-0.5 rounded border transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
-              style={{
-                fontSize: "13px",
-                color: joinCopied
-                  ? "oklch(0.18 0.025 160)"
-                  : "oklch(0.78 0.2 160)",
-                borderColor: joinCopied
-                  ? "oklch(0.78 0.2 160)"
-                  : "oklch(0.5 0.18 160 / 0.5)",
-                background: joinCopied
-                  ? "oklch(0.78 0.2 160)"
-                  : "oklch(0.78 0.2 160 / 0.1)",
-              }}
-              title={hasIP ? `Copy IP to join: ${ipValue}` : "No IP available"}
-              data-ocid={`server.primary_button.${index + 1}`}
-            >
-              {joinCopied ? "✓ IP Copied!" : "▶ Join"}
-            </button>
-
-            {/* View details button */}
-            {onServerClick && (
-              <button
-                type="button"
-                onClick={() => onServerClick(server)}
-                className="font-vt323 flex-shrink-0 flex items-center gap-1 px-2.5 py-0.5 rounded border transition-all duration-200 hover:bg-primary/20"
-                style={{
-                  fontSize: "13px",
-                  color: "oklch(0.75 0.18 255)",
-                  borderColor: "oklch(0.45 0.12 255 / 0.5)",
-                }}
-                data-ocid={`server.secondary_button.${index + 1}`}
-              >
-                <ExternalLink className="h-3 w-3" />
-                View
-              </button>
-            )}
-          </div>
         </div>
       </div>
+
+      {/* Horizontal row: logo + info */}
+      <div className="flex flex-row p-3 gap-3">
+        {/* Logo square */}
+        <div className="flex-shrink-0">
+          <div
+            className="rounded-lg overflow-hidden flex items-center justify-center"
+            style={{ width: "76px", height: "76px", minWidth: "76px" }}
+          >
+            {server.imageURL ? (
+              <img
+                src={server.imageURL}
+                alt={`${server.name} logo`}
+                className="w-full h-full object-cover"
+                loading="lazy"
+              />
+            ) : (
+              <div
+                className="w-full h-full flex items-center justify-center"
+                style={{ background: logoGradient }}
+                aria-label={`${server.name} server placeholder`}
+              >
+                <span
+                  className="font-pixel text-foreground/40"
+                  style={{ fontSize: "9px" }}
+                >
+                  {server.name.slice(0, 3).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 min-w-0 flex flex-col">
+          {/* Server name */}
+          <div className="flex items-start justify-between gap-2 mb-1">
+            <h3
+              className={`font-pixel leading-relaxed ${
+                server.featured ? "neon-cyan" : "text-foreground"
+              }`}
+              style={{ fontSize: "9px" }}
+            >
+              {server.name}
+            </h3>
+            {rating > 0 && <StarRating rating={rating} />}
+          </div>
+
+          {/* Description */}
+          <p
+            className="font-vt323 text-muted-foreground line-clamp-2 mb-2"
+            style={{ fontSize: "15px", lineHeight: "1.3" }}
+          >
+            {server.description}
+          </p>
+
+          {/* Version + Gamemode */}
+          <span
+            className="font-vt323 text-muted-foreground"
+            style={{ fontSize: "13px" }}
+          >
+            <span style={{ color: "oklch(0.75 0.18 215)" }}>
+              v{server.version}
+            </span>{" "}
+            ·{" "}
+            <span style={{ color: "oklch(0.72 0.18 285)" }}>
+              {server.gamemode}
+            </span>
+          </span>
+        </div>
+      </div>
+
+      {/* Tags row */}
+      {server.tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 px-3 pb-2">
+          {server.tags.map((tag) =>
+            onTagClick ? (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => onTagClick(tag)}
+                className="font-vt323 px-2 py-0 rounded-full cursor-pointer transition-all duration-150 hover:brightness-125 hover:scale-105"
+                style={{
+                  fontSize: "12px",
+                  color: TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)",
+                  background: "oklch(0.16 0.02 255)",
+                  border: `1px solid ${TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)"}/30`,
+                }}
+              >
+                #{tag}
+              </button>
+            ) : (
+              <span
+                key={tag}
+                className="font-vt323 px-2 py-0 rounded-full"
+                style={{
+                  fontSize: "12px",
+                  color: TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)",
+                  background: "oklch(0.16 0.02 255)",
+                  border: `1px solid ${TAG_COLORS[tag] ?? "oklch(0.72 0.03 240)"}/30`,
+                }}
+              >
+                #{tag}
+              </span>
+            ),
+          )}
+        </div>
+      )}
+
+      {/* View Details button */}
+      {onServerClick && (
+        <div className="px-3 pb-3 mt-auto">
+          <button
+            type="button"
+            onClick={() => onServerClick(server)}
+            className="font-pixel w-full flex items-center justify-center gap-2 py-2.5 rounded-lg border transition-all duration-200 hover:bg-primary/20 group-hover:border-primary/60"
+            style={{
+              fontSize: "8px",
+              color: "oklch(0.80 0.20 255)",
+              borderColor: "oklch(0.45 0.18 255 / 0.5)",
+              background: "oklch(0.45 0.18 255 / 0.06)",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                "0 0 12px oklch(0.65 0.22 255 / 0.4), 0 0 24px oklch(0.55 0.18 255 / 0.2)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
+            }}
+            data-ocid={`server.secondary_button.${index + 1}`}
+          >
+            View Details
+            <ArrowRight className="h-3 w-3" />
+          </button>
+        </div>
+      )}
     </article>
   );
 }
