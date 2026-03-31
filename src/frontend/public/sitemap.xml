@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 
-  <!-- Homepage -->
   <url>
     <loc>https://mine-lister-uey.caffeine.xyz/</loc>
     <lastmod>2026-03-31</lastmod>
@@ -9,51 +8,6 @@
     <priority>1.0</priority>
   </url>
 
-  <!-- Category anchor pages -->
-  <url>
-    <loc>https://mine-lister-uey.caffeine.xyz/#survival</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://mine-lister-uey.caffeine.xyz/#pvp</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://mine-lister-uey.caffeine.xyz/#skyblock</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://mine-lister-uey.caffeine.xyz/#factions</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://mine-lister-uey.caffeine.xyz/#smp</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://mine-lister-uey.caffeine.xyz/#minigames</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://mine-lister-uey.caffeine.xyz/#bedwars</loc>
-    <lastmod>2026-03-31</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-
-  <!-- Server detail pages -->
   <url>
     <loc>https://mine-lister-uey.caffeine.xyz/server/zodiacmc</loc>
     <lastmod>2026-03-31</lastmod>
