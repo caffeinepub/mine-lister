@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /admin-dashboard
 
-Sitemap: https://minelister.in/sitemap.xml
+Sitemap: https://mine-lister-uey.caffeine.xyz/sitemap.xml
